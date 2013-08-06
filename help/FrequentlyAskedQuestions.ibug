@@ -1,0 +1,70 @@
+## Frequently Asked Questions
+
+### BayesHive
+
+**What is the status of BayesHive? Is it a finished product?**
+
+BayesHive is still a prototype, but we hope that even at this stage it
+is useful. 
+
+**How long will it take to fit a model?**
+
+That depends n the model complexity more than on the amount of data
+you have. Models with many hidden parameters, such as unobserved
+timeseries, can take a long time. Simple statistical models such as
+regression and ANOVAs can be very quick, i.e. done in 1-2 seconds.
+
+If fitting a model takes an unexpectedly long time, it may be a poor
+model.
+
+**How much data can BayesHive handle?**
+
+In practice, we are for the moment limited by data transfer over the
+web for displaying raw data and results rather than inference in large
+data sets. If your dataset is more than one megabyte, you may find it
+quite slow to click through the interface. We're working on improving
+this situation.
+
+**What did you use to build BayesHive?**
+
+BayesHive is built using [Yesod](http://www.yesodweb.com/),
+[Stan](http://mc-stan.org/),
+[Haskell](http://www.haskell.org/haskellwiki/Haskell),
+[node.js](http://nodejs.org/), [AngularJS](http://angularjs.org/) and
+numerous other packages.
+
+### Baysig
+
+**What is Baysig?**
+
+Baysig is a new probabilistic programming language. It makes it easy
+to define complex statistical models and fit them to heterogeneous data.
+
+**Why should I learn Baysig? I already know R/Python/Matlab/etc. Why another programming language?**
+
+Working in Baysig is *completely* different from standard statistical
+programming languages or data analysis enviroments. In R/Python/Matlab
+the programmer principally transforms data or defines procedures that
+extract information from data. In contrast, in Baysig we build
+statistical models for the unprocessed data and then infer the
+parameters of these statistical models. These parameter estimates are
+then used to drive hypothesis tests, decisions, prediction and forecasts.
+
+**How is Baysig Different from WinBugs/JAGS/Stan?**
+
+Unlike WinBUGS, JAGS, and Stan, Baysig is a general-purpose
+programming language. This means that:
+
+* complex models can be built from components
+
+* new elementary probability distributions can be defined within the
+  model
+
+* Post-inference calculations such as decisions can be expressed
+
+* There is support for plotting the model estimation results and/or
+  the raw data
+
+In addition, Baysig supports first-class ordinary and stochastic
+differential equations, which means you get inference in continuous
+dynamical systems. 

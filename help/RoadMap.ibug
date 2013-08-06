@@ -1,0 +1,21 @@
+## Roadmap
+
+Here are somethings we will add to BayesHive and Baysig in the future:
+
+### Coming soon:
+
+* Discrete timeseries model builders
+* Integrate the model builders into the rest of the app
+* Hierarchical statistical models
+* Geographical data: maps, map data and spatial statistical models.
+* Images: upload, browse images, image models.
+* Interactive estimation
+* Splitable windows, use the full screen
+
+### Later: 
+
+* Decision support
+* Clustering 
+* Jump diffusion models
+* Reversible jump estimation
+* Integer and Boolean model parameter estimation.

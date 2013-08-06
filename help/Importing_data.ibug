@@ -1,0 +1,30 @@
+# Importing data
+
+To upload a data file, click on the "plus-sign" button on the left 
+button on the left. You will need to enter a name for your new dataset, 
+and then select "upload data". We currently support three data file formats.
+
+## Comma-separated values
+
+Use this format to import data from a spreadsheet. You should have header names in the top row and data in the rows below.
+
+![CSV file screenshot](/static/img/import_csv.png)\
+
+For columns with boolean (true/false) data, use "T" or "t" for true and "F" or "f" for false. You can also use Y/N, y/n, t/f, or true/false for boolean data. Please email us at info@bayeshive.com with your file if the upload isn't working right.
+
+## Timeseries as comma-sepated values
+
+Again, header labels in the first row. The first coloumn should be the time as a number (which you may interpret as seconds after some point in time.
+
+![CSV signal file screenshot](/static/img/import_csvsignal.png)\
+
+Coming soon: calendar dates for the time row
+
+## Matlab files
+
+Try uploading a .MAT file (version 5 or 7 format). Not every data type is supported, so let us know if you have any problems.
+
+## Other kinds of data
+
+Email us at info@bayeshive.com or enter a suggestion under "Feedback" for your favourite file format that is not currently supported in BayesHive.
+   

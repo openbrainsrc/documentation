@@ -1,0 +1,135 @@
+## Baysig quick tour: dynamical systems
+
+This is the fourth document in a quick tour of the Baysig programming language, following on from [[Baysig quick tour: Bayesian statistical inference]]. The tour begins in [[Baysig quick tour: fundamentals]].
+
+>> tmax = 200.0
+>> dt = 0.1
+
+Lots of models in physics, chemistry, biology and the social sciences
+take the form of dynamical systems. For that reason, we have added a
+small construct to the functional core of Baysig to
+support differential equations. Such equations are introduced by
+pattern matching on the derivative of a function:
+
+< D v t = v t + sin t
+
+where D denotes the differential operator, applied to the function
+`v`. The last pattern `t` brings the independent variable into scope
+-- both `v` and `D v` are functions of type `Real -> Real`. We could
+equally have written
+
+>> v_0 = 0.0
+
+> D v = \t -> v t + sin t
+
+in either case we need to give an initial value for `v`:
+
+< v_0 = 0.0
+
+(In future versions of Baysig, this will be written as `v 0 = 0`.)
+
+When a function `v` is defined using a differential  operator as
+above, it can be used as any function, meaning it can be passed
+as to other functions or applied to values
+
+?> v 0.5
+
+Several differential equations can be solved together if they are
+coupled. There is no need to indicate this, the compiler will figure
+it out from the dependencies in the variables. Here are the
+Lotka-Volterra equation for predator-prey dynamics:
+
+>> lvalpha = 0.1 
+>> lvbeta = 0.01
+>> lvgamma = 0.05
+>> lvdelta = 0.001
+
+> x_0 = 50.0
+> y_0 = 15.0 
+> D x t = x t * (lvalpha - lvbeta * y t)
+> D y t = - y t * (lvgamma - lvdelta * x t)
+
+?> over [sigPlot x, sigPlot y]
+
+If you have observed some data, you can use Baysig to express a
+probabilistic model and try to estimate the model parameters. One way
+to do this is to act as if the differential equations exactly govern the
+underlying dynamics, with the outcome observed with uncorrelated
+noise.
+
+This approach does not always work for real data. The real system may
+have some intrinsic noise, or there may be aspect of the system we do
+not fully understand. (In the Bayesian interpretation of probability,
+these two scenarios really mean the same thing.) We can still work
+with probabilistic models of the full time series by switching to
+*stochastic differential equations* (SDEs), which add "white noise" to
+the system equations. We have implemented this in Baysig by defining
+the `wiener` process as a probability distribution which must be drawn
+separately, in addition to a differential operator `d` appropriate for
+an SDE (the wiener process is not differentiable in the classical
+sense). This has the disadvantage that a single SDE is defined in two
+lines instead of one, but makes it clear where stochasticity occurs in
+an SDE, and allows reuse of individual wiener process sample paths, if
+needed. Thus a stochastic analog of the Lotka-Volterra equations may
+be:
+
+> predPrey = prob
+>    rvalpha   ~  gamma 1 1
+>    rvbeta    ~  gamma 1 1
+>    rvgamma   ~  gamma 1 1
+>    rvdelta   ~  gamma 1 1
+>    w1        ~  wiener
+>    w2        ~  wiener
+>    xr_0      ~  improper_uniform_positive
+>    yr_0      ~  improper_uniform_positive
+>    d xr t    =     xr t    * (rvalpha  - rvbeta   * yr t)  + 0.4 *  d w1 t
+>    d yr t    =  -  yr t    * (rvgamma  - rvdelta  * xr t)  + 0.4 *  d w2 t 
+>    return    (xr,yr)
+
+Then, `predPrey1` is new probabilistic generator which has known
+values for the model parameters:
+
+> predPrey1 <* updateS predPrey (return {  rvalpha=>0.1;
+>                                          rvbeta=>0.01;
+>                                          rvgamma=>0.05;
+>                                          rvdelta=>0.001;
+>                                          xr_0=>50.0; 
+>                                          yr_0=>15.0})
+
+sampling from this model
+
+> simPredPrey <* sample predPrey1
+
+gives functions we can plot
+
+?> over [sigPlot (fst simPredPrey), sigPlot (snd simPredPrey)]
+      
+The real power of the Baysig language is that models like `predPrey`
+can be run in two modes: a *forward mode* that generates data, through
+`sample`, and an *inverse mode* to estimate parameters from real-world
+data, using `estimate`. We do not have any real-world data that counts
+chickens and foxes here at the Baysig HQ, so we will just pretend for
+now that the simulated data `simPredPrey` in fact came from a real
+experiment. We will then estimate the parameters from the simulated
+dataset. This way of re-estimating parameters from datasets that have
+been generated with known parameters is important in validating
+statistical estimation procedures.
+
+> predPreyPars <* estimate predPrey simPredPrey
+
+?> predPreyPars
+
+>> alphaDist = axisLabels "alpha" "p" $ distPlot $ with predPreyPars rvalpha
+
+>> betaDist = axisLabels "beta" "p" $ distPlot $ with predPreyPars rvbeta
+
+>> gammaDist = axisLabels "gamma" "p" $ distPlot $ with predPreyPars rvgamma
+
+>> deltaDist = axisLabels "delta" "p" $ distPlot $ with predPreyPars rvdelta
+
+?> PlotColumn [] [PlotRow [] [ alphaDist,  betaDist], PlotRow [] [ gammaDist, deltaDist]]
+
+These estimates are *very* close to the real parameters. This example
+illustrates that parameter estimation in rich, complex models such as
+the one above -- or even richer models with many hierarchies -- is as
+simple in Baysig as linear regression.

@@ -1,0 +1,772 @@
+# Baysig: reference manual
+
+Baysig is a modern statistical programming language combining
+functional programming with Bayesian statistical inference in the
+style of WinBUGS and related modeling languages.  To users of
+functional languages such as Haskell or Standard ML, Baysig brings
+powerful statistical inference in arbitrarily complex statistical
+models while retaining the full uncertainty in inference and
+prediction.  To users of BUGS, WinBUGS, Stan or JAGS, Baysig enhances
+their ability to compose complex models out of simple models and to
+describe computations that follow from statistical inference.
+
+In addition to the Baysig language, we have built a web application
+called BayesHive that allows users with little to no programming
+experience to build statistical models in the Baysig language and run
+these models against their own or public data.  The easiest way to
+learn Baysig is probably to build models in BayesHive and then look at
+and modify the degenerated Baysig code.  Once you've done this, the
+Baysig documentation will show you how to build even more flexible
+models.
+
+## Baysig documentation
+
+We have written an informal quick tour of the Baysig language that we
+suggest you start with if you want to learn Baysig.  This reference
+Manual covers many of the concepts in more detail.  In addition, large
+amounts of example Baysig code can be found in the Baysig test suit.
+
+There is also a list of frequently asked questions with answers.
+
+TODO: what assumptions does the reference manual make about the readers?
+
+TODO: conventions used in help files
+
+TODO: help files are themselves Baysig. how to view?
+
+## Literate documents
+
+All Baysig programs are embedded within documents that interleave
+written language (e.g. in English) with Baysig code that defines
+functions and statistical models and with questions about the value of
+variables, probability distributions, and graphical plots.
+
+The interpretation of a line in a Baysig document depends on the first one or two characters.
+
+| Line starts with  | What it is  | Example       |
+|-------------------|-------------|---------------| 
+| `>`               | Code        | `> f x = x+2` |
+| `?>`              | Question    | `?> f 5`      |
+| anything else     | Comment     | Hello world!  |
+
+When the document is typeset, questions are replaced by their answers.
+This allows you to build a full report or any document describing a
+particular analysis within the Baysig environment.
+
+TODO: example.
+
+TODO: markdown
+
+TODO: layout rule
+
+# Baysig Core language
+
+At the core of Baysig is a functional programming language that should
+feel very familiar to users of Haskell or Standard ML.  But in fact
+much of the notation comes directly from mathematics.  This is because
+in functional programming expressions have no side effects and
+therefore there is no need for syntax to describe anything else than
+essentially mathematical expressions.
+
+## Numbers
+
+Numbers in Baysig are subject to essentially the same arithmetic
+syntax as in most other programming languages.  Standard arithmetic
+operators such as `+`, `-`, `*`, `/`, and functions such as `sin`, `cos` can
+be used directly as written in mathematical notation.
+
+| Operator  | What it is  | Precedence    | Example  |       | 
+|-----------|-------------|---------------|----------|-------|
+| `+`       | Addition    |               | 2+2      | = 4   |
+| `-`       | Substraction|               | 1-5      | 
+| `*`       | multiplication|             | x*5      |
+| `/`       | Division |                  | 4/2.3    | 
+| `-`       | Unary minus |               | -5       |
+| `^`       | Exponentiation |
+
+| Operator  | What it is  | Example  |
+|-----------|-------------|----------|--------
+| exp       | natural exponentiation | exp(1)
+| log       | natural logarithm | log(3)
+| sin, cos  | sine and cosine | sin(4.3)
+
+When a number is assigned to a variable that variable can be used to
+represent the number itself in a calculation.
+
+> x = 5
+
+> y = 3+x
+
+?> y
+
+However, since Baysig is a functional programming language, there is
+no way to change the value of a variable once it has been assigned.
+
+TODO: scientific notation (1e5) for numbers
+
+## Functions
+
+Functions allow you to abstracts out common calculations based on
+arguments. Simple functions are written with a lightweight syntax that
+is nearly identical to that found in mathematics
+
+```
+f x = 2+cos(x)
+```
+
+The function is used by applying a value to it, which results in a
+value that can be calculated by substituting the function's argument
+name with the value to which the function is applied. It is possible
+to follow this process along by hand:
+
+```
+f 2.1 = 2+cos(2.1) = 2+ (-0.50485) = 1.49514
+```
+
+In Baysig, there is no need to enclose the functions arguments in
+parentheses, but you can do so if you like: `f 2 = f(2)`.
+
+Functions can also take multiple arguments:
+
+```
+f x y = x + y
+
+f 5 6 => 11
+```
+
+When using functions with multiple arguments together with
+parentheses, it is important to wrap each argument in its own
+parentheses, like this: `f(5)(6)`. Functions can also be used in
+conjunction with pairs (see below) to support a more traditional
+syntax for multiple arguments.
+
+
+Functions can also be declared as infix operators. 
+infix declarations
+
+dollar
+
+lambda and top level function declarations. let. 
+
+variable rules - not start with upper case.
+
+functions as first class entities. higher-order functions.
+
+deceptively simple but very powerful. refer to existing literature.
+
+## Types 
+
+static type checking and type inference. type declarations
+
+parametric polymophism
+
+types table
+
+## Strings
+
+Strings in Baysig are always enclosed in double quotes.
+
+```
+x = "This is a String"
+soIsThis = "A"
+```
+
+You can't really do much with strings in Baysig for the moment. You
+can compare two strings for equality, though.
+
+```
+x = "Foo"
+y = "Bar"
+
+x==y => False
+x==x => True
+```
+
+If you want a number 0 or 1 to be the outcome of an equality test, you
+have to convert the Boolean to a real numebr. 
+
+```
+boolToReal (x==y) => 0.0
+boolToReal (x==x) => 1.0
+```
+
+There is a little helper function for that:
+
+```
+x .==. y => 0.0
+x .==. x => 1.0
+```
+
+
+## Pairs
+
+Pairs hold two values of which may be of different types. A pair is
+created with a comma:
+
+```
+myPair = (1,"Hello World!")
+```
+
+You can retrieve these two elements with the functions fst and snd,
+respectively.
+
+```
+fst myPair => 1
+snd myPair => "Hello World!"
+```
+
+If you want to store more than two elements in this way, you can use
+nested pairs (`(1,(2,False))`). However, this quickly becomes unwieldy
+and you may want to consider using records instead.
+
+## Lists 
+
+Lists are homogenous sequences of values of a given type. That is, a
+list can contain values of any type but they must all be of the same
+type. Literal lists can be created by separating values with commas
+and enclosing them in square brackets: `[1,2,3]` and `["Hello",
+"World"]` are lists of integers and strings, respectively. The empty
+list can be constructed by `[]`.
+
+There are several functions in Baysig to operate on lists:
+| function name  | type       | description    | example  |
+|----------------|------------|----------------|----------|
+| `length`       | `List a -> Int` | length   | `length [1,2] => 2` | 
+| `head`         | `List a -> a` | first element | `head [1,2] => 1` |
+| `take`         | `Int -> List a -> List a` | first n elements| 
+| `drop`         | `Int -> List a -> List a` | drop first n elements| 
+
+TODO: mutation vs persistence
+
+## Records
+
+Records are inhomogeneous collections of values; each value in a
+record is given a name (the *field name*) which is used to reference
+it. Lists are built using the following syntax:
+
+```
+{name=>"Tom"; age => 35}
+```
+
+The values corresponding to different fields can therefore have
+different types. The overall type of the record created above is
+
+```
+{name=>String; age=>Int}
+```
+
+Given a record value, inidividual field values can be accessed with
+the `#` operator used as `record#field` form, for instance:
+
+```
+r : {height => Real; age=>Int}
+r = {height => 1.80; age=>42} 
+
+h = r#height
+```
+
+In Baysig, we often use *lists of records* for datasets that might
+come from a spreadsheet. This representation gives some flexibility
+when building statistical models in terms of controlling which aspects
+of a dataset are observed and which are not modelled.
+
+There are some special syntactic constructs to make it easy to work
+with lists of records. 
+
+To transform a list of records, use `with` to define a transformation
+based on the individual record. The first argument to with is the list
+of records. The second argument is an expression that is evaluated in
+the context of each record where every field value can be accessed
+directly as a variable given by the field name, i.e. without
+using the `#` notation. The new list has the same length as the one
+that is being transformed. 
+
+For example, if we have a dataset of that contains personal
+information about persons, it might be stored in a variable of the
+following type:
+
+```
+people : [{name:String; age:Int;height:Real}]
+people = [{name=>"John"; age=>34; height=>1.85}, ...]
+
+heights : [Real]
+heights = with people height
+
+height_and_age : [(Real,Int)]
+height_and_age = with people (height, age)
+```
+
+`with` can also be written as an infix operator. The following is an
+equivalent definition
+
+```
+height_and_age = people <#> (height,age)
+```
+
+You might remember `<#>` by it accessing record fields (`#`) inside a
+container (`<` `>`), which here is a list. Later, we will see that
+with and `<#>` work not only on lists but also on probability
+distributions.
+
+A related contruct is `when` and its infix operator equivalent
+`<|>`. This allows you to remove some items in a list of records while
+preserving its type. The first argument is again a list of
+records. The second argument is an expression, evaluated again in the
+context of each record being opened such that fields are directly
+accessible by their name. The final type of this expression must be a
+boolean (True/False) value. If this is true, the record is retained in
+the new list, otherwise it is rejected. Following the previous
+example, we can make a list of voting-age adults from our list of all
+persons:
+
+```
+voters = when people (age>17)
+```
+
+or equivalently
+
+```
+voters = people <|> age > 17
+```
+
+With and when can be combined, which works best when they are used as
+infix operators
+
+```
+height_of_voters : [Real]
+height_of_voters = people <|> age > 17 <#> height
+```
+
+## Pattern matching
+
+In functions, let- and case-expressions, in addition to individual
+variables, more complex *patterns* can be used to deconstruct complex
+data into simpler values. As an example, we will use a value `v` of
+type `(Int, String)`:
+
+```
+v = (4,"Hello World!")
+```
+
+If we then define a function intended to operate on pair data, we can
+directly deconstruct the pair into its constituents, for instance:
+
+```
+swap (x,y) = (y,x)
+```
+
+or
+
+```
+swap = \(x,y) -> (y,x)
+```
+for 
+```
+swap v => ("Hello World!", 4)
+```
+
+instead of 
+
+```
+swap thePair = (snd thePair, fst thePair)
+```
+
+Pairs can contain variable names (as in the pair `(x,y)` which
+contains the variables `x` and `y`). Instead of variables, literal
+values can also appear. If the value the pair is being matched against
+does not match the literal value, and the pair is used in the argument
+to a function, a runtime error will occur
+
+```
+f (3,x) = "match!"
+
+f v => runtime error 
+``` 
+
+However, patterns can also be used in *case expressions* which allow
+multiple patterns to be tested against a value
+
+```
+s = case v of
+     (1,x) -> "one is the loneliest number"
+     (2,y) -> "two can be as bad as one"
+     (3,y) -> "three is a crowd"
+     (x,y) -> "party time!"
+
+s => "three is a crowd"
+```
+
+If we do not care about the value in a certain place in the pattern,
+we can use the pattern `_` which matches *anything*. For
+instance in the above definition of `s` we did not really care about
+the values denoted by `x` and `y`. For instance, `fst` is defined as
+
+```
+fst (x,_) = x
+```
+
+Patterns can also be used to match against lists and user-defined data
+types.
+
+Finally, Baysig features an experimental record wildcard pattern
+`{..}` that matches a record and brings all the fields into scope. We
+previously defined a record `r`:
+
+```
+r : {height => Real; age=>Int}
+r = {height => 1.80; age=>42} 
+```
+
+we can now access fields by matching the record against the wildcard pattern
+
+```
+h = (\{..}-> height) r
+```
+
+The constructs `with` and `when` are defined in terms of the wildcard pattern.
+
+## Probability distributions
+
+Prob type. unit, normal. return.
+
+plot them
+
+compose with >>=
+
+prob notation: bind, lets, 
+
+## Differential equations
+
+D pattern
+
+_0 for initial conditions
+
+output is function
+
+## Stochastic differential equations
+
+wiener dist
+
+d pattern, d w t
+
+equivalent with unfold
+
+## Implicit arguments
+
+definition of w and d on rhs.
+
+## Vectors
+
+Vectors are heterogeneous collections of elements. 
+
+To build a vector
+
+```
+fillV : Int -> (Int -> a) -> Vector a
+
+v = fillV 5 \i-> 0
+w = fillV 3 \i -> cos (unround i)
+```
+
+You can pattern match against a vector:
+
+```
+ <x,y,z> = fillV 3 \i -> sin (unround i)
+```
+brings into scope variables `x`, `y` and `z` (but no vectors). 
+
+Operations on vectors: 
+
+| function name  | type       | description    | example  |
+|----------------|------------|----------------|----------|
+| `dim`          | `Vector a -> Int` | vector length  | `dim v => 5` | 
+| `!`            | `Vector a -> Int -> a` | index elements | `v ! 2 => 0` | 
+| `*^`           | `Real -> Vector Real -> Vector Real` | multiply by scalar | `5.1 *^ w`|
+| `^+^`          | `Vector Real -> Vector Real -> Vector Real` | add two vectors | `w ^+^ w`|
+| `^*%`          | `Vector Real -> Matrix Real -> Vector Real` | Vector times Matrix | |
+| `%*^`          | `Matrix Real -> Vector Real -> Matrix Real` | Matrix times Vector | |
+| `vcons`        | `a -> Vector a -> Vector a` | prepend an element  |  | 
+| `vmap`         | `(a->b) -> Vector a -> Vector b` | apply a function to every element  | 
+| `slice`        | `Int -> Int -> Vector a -> Vector a` | extract a subvector given starting index and length
+
+in some of these operators, the symbol `^` reminds you on which side
+of the operator the vector goes.
+
+## Matrices 
+
+To build a matrix: 
+
+```
+fillM : (Int,Int) -> ((Int,Int) -> a) -> Matrix a
+
+ident n = fillM (n,n) \(i,j) -> if i==j then 1 else 0
+mymat = fillM (5,5) \(i,j) -> cos (unround i)+sin(unround j)
+```
+
+Operations on matrices: 
+
+| function name  | type       | description    | example  |
+|----------------|------------|----------------|----------|
+| `mdims`            | `Matrix a -> (Int,Int)` | matrix size  | `mdims m => (5,5)` | 
+| `!!`              | `Matrix a -> (Int,Int) -> a` | index elements | `ident 4 !! (2,2) => 1` | 
+| `*%`             | `Real -> Matrix Real -> Matrix Real` | multiply by scalar | `5.1 *% mymat`|
+| `%+%`             | `Matrix Real -> Matrix Real -> Matrix Real` | add two vectors | `mymat %+% mymat`|
+| `%*%`             | `Matrix Real -> Matrix Real -> Matrix Real` | multiply two matrices | `mymat %*% mymat`|
+| `^*%`             | `Vector Real -> Matrix Real -> Vector Real` | Vector times Matrix | |
+| `%*^`             | `Matrix Real -> Vector Real -> Matrix Real` | Matrix times Vector | |
+| `svd`             | `Matrix Real -> List (Matrix Real)` | Singular value decomposition
+| `transM`          | `Matrix a -> Matrix a` | transpose | `transM mymat` |
+| `diag`            | `Vector a-> Matrix a` | create matrix from diagonal| 
+| `mmap`            | `(a->b) -> Matrix a -> Matrix b` | apply a function to every matrix element |
+
+In some of these operators, the symbol `%` reminds you on which side
+of the operator the matrix goes.
+
+If you use matrix or vector arithmetic with inconsistent dimensions, Terrible Things happen.
+
+## User-defined data types
+
+Maybe, Either, ()
+
+Definition of List, Bool
+
+## Portals
+
+pure functions and side effects
+
+## Sampling
+
+sampling
+
+repeat
+
+# Statistical inference
+
+## Statistical models
+
+priors
+
+use of improper priors 
+
+new prob distributions: LogPdf
+
+repeat
+
+unfold
+
+SDEs
+
+return
+
+treatment of independent variables
+
+## Calling *estimate*
+
+syntax
+
+return: prob over records
+
+use records to control what is observed. Structurally similar.
+
+Some things you can do
+
+* arguments to models
+
+* parametric on distributions
+
+## Limitations
+
+### Model must have a probability density function.
+
+Not every model that can be written use the `prob` notation or is of a
+valid type of the form `Prob a` for some type a can be used in
+statistical inference with `estimate`. The limitations in the models
+that can be used with `estimate` come from two sources: the first is
+that models must be associated with a valid probability density
+function (pdf) for `estimate` to be able to apply Bayes theorem to it. This
+is not the case for all models of type Prob a in Baysig. For instance,
+here is a model that is not assocatiated with a valid probability
+density function (see below for the reason why this is so):
+
+```
+notBayesianModel = prob
+  x ~ normal 0 1
+  return $ x^2
+```
+
+This model is not associated with a well-defined pdf, because it is
+not in general possible to calculate the pdf resulting from a
+non-linear transformations of values drawn from probability
+distributions. One way to "rescue" this model is to allow a further
+noise distribution after the non-linear transformation, for instance 
+
+```
+bayesianModel = prob
+  sigma ~ gamma 1 1
+  x ~ normal 0 1
+  normal (x^2) sigma
+```
+
+This may or may not be sufficiently close to the model you had in mind. 
+
+This limitation of using `estimate` can be summarized in this rule: 
+
+   > A model passed to `estimate` must end in a draw or simple combination of draws
+
+According to this rule, a model can end directly in a *draw* from a
+probability distribution for which the log-pdf function is
+defined. For instance, in
+
+```
+model = prob
+  x ~ uniform 0 1
+  sigma ~ gamma 1 1
+  normal x sigma
+```
+
+the last line is itself a probability distribution, so it is OK to use
+this model in estimate.
+
+If the last line is not itself a probability distribution, it must a
+combination of draws from such distributions. In the simplest case,
+you can reference a variable denoting a draw from a probability distribution:
+
+```
+model = prob
+  x ~ uniform 0 1
+  sigma ~ gamma 1 1
+  y ~ normal x sigma
+  return y
+```
+
+Pairs and records that reference variables which are draws from
+probability distributions are also simple combinations that can be
+used in the last line of models passed to `estimate`. For instance,
+
+```
+model = prob
+  x ~ uniform 0 1
+  sigma ~ gamma 1 1
+  y1 ~ normal x sigma
+  y2 ~ normal x sigma
+  return (y1,y2)
+```
+
+```
+model = prob
+  x ~ uniform 0 1
+  sigma ~ gamma 1 1
+  y1 ~ normal x sigma
+  y2 ~ normal x sigma
+  return {a=>y1; b=>y2}
+```
+
+are both acceptable models.
+
+In models that use unfold, it is very common that only a portion of
+the state space is observed. You can use `map` in the last line of a
+model to control this:
+
+```
+--- NOTE: CURRENTLY BROKEN
+
+model = prob
+  v ~ gamma 1 1
+  x0 ~ normal 0 0.1
+  y0 ~ normal 0 0.1
+  ys ~ unfold 100 (x0,y0) $ \(xp,yp) -> prob
+         x ~ normal xp v
+         y ~ normal yp v
+	 return (x,y)
+  return $ map fst ys
+```
+
+Here, only the x's in the two-dimensional state space model are observed.
+
+Finally, you can end the model in a `repeat`. The same rules about
+ending in a draw or a simple combination of draws apply within
+`repeat` loops. For instance,
+
+```
+regress = prob
+   offset  ~  normal 0 1.0
+   sigma   ~  gamma 1 1
+   slope   ~  normal 0.0 1.0
+   repeat 50  $ prob w ~ uniform 0.0 1.0
+                     y ~ normal (offset+slope*w) sigma
+                     return $ { foo=>w;bar=>y }
+```
+
+can also be used within `estimate`.
+
+### No new recursive functions
+
+The second source of limitations is that the implementation of the `estimate`
+procedure is still incomplete and does not support as many cases as
+we'd like. We are actively working on removing these limitations.
+
+Please do not call any recursive functions 
+
+We would like to remove this limitation, but it is not clear how
+feasible it is to do this while maintaining reasonably high
+performance inference.
+
+### All parameters must be real, vectors or matrices 
+
+We do not support integer, boolean or string-valued parameters. We
+would like to remove this limitation, but it is a lot of work. 
+
+### All data must come through estimate
+
+Please do not reference lists, vectors or matrices that are defined in
+global scope. All observed data should be returned by the model and
+pass through the second argument to `estimate`. Numbers, functions or
+probability distributions are OK.
+
+We will remove this limitation ASAP.
+
+### No local functions
+
+You cannot define or use local function in you model. 
+
+```
+badModel = prob
+  y ~ normal 0 1
+  f x = 2+1
+  normal (f y) 1
+```
+
+instead, make these functions global
+
+```
+f x = 2+1
+
+goodModel = prob
+  y ~ normal 0 1
+  normal (f y) 1
+```
+
+We will remove this limitation ASAP.
+
+### Prototype implementation
+
+Finally, `estimate` is prototype software and it will not be hard to
+find additional cases where it breaks. Please report all bugs to
+info@bayeshive.com.
+
+## Update
+
+syntax example
+
+use for generating data from model with vague priors
+
+use for posterior predictive
+
+## Fast-forwarding dynamical models
+
+example
+
+what it does under the hood.
+
+# Standard Library
+

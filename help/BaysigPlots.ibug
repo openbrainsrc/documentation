@@ -1,0 +1,133 @@
+# Baysig plots
+
+Plots can be embedded in Baysig documents generated on
+[BayesHive](http://bayeshive.com). To generate a plot, put a value of
+a `Plot` type in a question block, for instance:
+
+```
+ Here is my plot
+
+ ?> distPlot (normal 0 1)
+
+ Thanks for watching!
+```
+
+In the following sections, we describe the different ways to create and manipulate
+Plot values.
+
+## Fundamental plots
+
+There are a number of functions that take data of different types and
+turn them into plots
+
+### Distribution histograms
+
+`distPlot` takes a distribution over real numbers and returns a
+histogram plot.
+
+The hitogram plots give you a small input control to set the number of
+bins. This can be dynamically changed by the user.
+
+?> distPlot (normal 0 1)
+
+### Data histograms
+
+`histogram` takes a list of numbers (real or integers) as its argument
+and returns a histogram plot
+
+?> fromTo 1 10
+
+?> histogram (fromTo 1 10)
+
+### Scatter plots
+
+`scatterPlot` takes a list of pairs of numbers (either of which can be
+real or integers) and creates a scatter plot using the pairs as
+coordinates (as is conventional, the first pair component is plotted
+on the x-axis and the second on the y-axis).
+
+> xyData = zipWithNats (linspace 0 10 8) 1
+
+?> xyData
+
+?> scatterPlot xyData
+
+### Signal plots
+
+`sigPlot` plots a timeseries from a value of type `Real->Real`.
+
+We Solve a simple differential equation to generate data for this
+example, but you can also use uploaded timeseries.
+
+> dt = 0.1
+> tmax = 10
+> s_0 = 1.0
+> D s t = - s t
+
+?> sigPlot s
+
+### Probabilistic signals, points and lines
+
+`psigPlot` is the probabilistic equivalent of `sigPlot` which takes a
+probability distribution over timeseries instead of a single
+value. Let's plot the `wiener` distribution over Wiener processes:
+
+?> psigPlot wiener
+
+As you can see, it draws a number of samples from the probability
+distribution. You ca change the number of samples drawn by using
+`psigNPlot` instead:
+
+?> psigNPlot 10 wiener
+
+If you plot a lot of signals this way, your borswer will feel *very*
+slow.
+
+`ppoints` is the probabilistic equivalent of `scatterPlot`. It takes a
+probability distribution over list of pairs. `ppoints` does the same
+thing, but draws lines between the points. We will a suitable value
+here to illustrate:
+
+> myRandomPoints = prob
+>    xs = linspace 0 1 10
+>    ys ~ mapM (\x -> normal x 0.1) xs
+>    return (zip xs ys)
+
+?> PlotRow [] [ppoints myRandomPoints, plines myRandomPoints]
+
+This is pur first example of multi-panel plots, which will be described below.
+
+## Plot modifiers
+
+There are a number of function that modify fundamental plots.
+
+`over` superimposes a list of plots on a single plot with a single set of axes. 
+
+?> over [scatterPlot xyData, sigPlot s]
+
+`axisLabels` sets the plot x axis label (first argument) and y axis
+label (second argument) on the plot which is its third argument
+
+?> axisLabels "cheese" "potato" (scatterPlot xyData)
+
+`style` allows you to specify the styles that correspond to Radian
+style properties. These are specified as a list of string-string
+pairs.
+
+?> style [("marker", "square"), ("fill", "red")] (scatterPlot xyData)
+
+## Style properties
+
+See [Radian documentation](http://openbrainsrc.github.io/Radian/index.html)
+
+## Multipanel plots
+
+The constructors `PlotRow` and `PlotColumn` can be used to nest plots.
+Both take an initial argument with is a list of style properties for
+that whole sub-plot.
+
+?> PlotRow [] [ppoints myRandomPoints, PlotColumn [] [scatterPlot xyData, distPlot (normal 0 1)]]
+
+## Writing new plotting functions (advanced)
+
+TODO

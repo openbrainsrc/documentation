@@ -1,0 +1,142 @@
+## BayesHive: Expression syntax
+
+Both the nonlinear regression and the dynamical systems model builders
+require the specification of mathematical expressions: for nonlinear
+regression models we must specify the relationship between the outcome
+and predictor variables, and for dynamical systems we must specify the
+differential equations defining the system.  This page describes the
+syntax used for these expressions.
+
+
+### Literals and identifiers
+
+Literal numeric values are expressed using the normal integer or
+floating point forms familiar from most programming languages,
+e.g. `123`, `3.14159`, `6.02E23` and so on.
+
+Identifiers for variables and parameters in equations should start
+with a letter (upper or lower case), and are composed of upper or
+lower case letters, digits and underscores.  Some special rules exist
+governing the rendering of identifiers for display in the model
+builders.  The following table covers the most common possibilities:
+
+| Input syntax | Rendered form |  |
+|--------------|---------------|--|
+| `x`, `y` | $x$, $y$ | Single-letter identifiers |
+| `age`, `price` | $\mathtt{age}$, $\mathtt{price}$ | Multi-letter identifiers |
+| `beta`, `Psi` | $\beta$, $\Psi$ | Greek letters |
+| `x_0`, `beta_age` | $x_0$, $\beta_{\mathtt{age}}$ | Subscripted identifiers |
+
+The identifiers `t`, `e`, `pi` are reserved -- they are used to stand
+for the time variable in dynamical systems, the base of natural
+logarithms, and the usual constant $\pi$.  In addition, the
+identifiers `W`, `W1`, `W2`, etc. are reserved for the representation
+of Wiener processes in stochastic differential equations.
+
+
+### Arithmetic expressions
+
+The usual arithmetic operators are expressed as `+` (addition), `-`
+(subtraction), `*` (multiplication), `/` (division) and `^`
+(exponentiation) and parentheses are used for expression grouping.
+Here are some examples:
+
+ * `x + 1` &rArr; $x + 1$
+ * `x - z` &rArr; $x - z$
+ * `x * (y + 3)` &rArr; $x (y + 3)$
+ * `1 / (x + 1)` &rArr; $1 / (x + 1)$
+ * `3 * x^3 + 2 * x^2 + x - 4` &rArr; $3 x^3 + 2 x^2 + x - 4$
+
+
+### Built-in functions
+
+A number of common mathematical functions are built-in:
+
+| Input syntax | Rendered form |  |
+|--------------|---------------|--|
+| `sin(x)`, `cos(x)`, `tan(x)` | $\sin x$, $\cos x$, $\tan x$ | Trigonometric functions |
+| `asin(x)`, `acos(x)`, `atan(x)` | $\mathrm{asin}\,x$, $\mathrm{acos}\,x$, $\mathrm{atan}\,x$ | Inverse trigonometric functions |
+| `exp(x)` | $\exp x = e^x$ | Exponential function |
+| `log(x)`, `log10(x)` | $\log x$, $\log_{10} x$ | Natural and base-10 logarithms |
+| `sqrt(x)` | $\sqrt{x}$ | Square root |
+| `abs(x)` | $|x|$ | Absolute value |
+| `ceil(x)`, `floor(x)` | $\mathtt{ceil}(x)$, $\mathtt{floor}(x)$ | Ceiling and floor functions |
+| `atan2(x, y)` | $\mathrm{atan2}(x,y)$ | Inverse tangent of $y/x$ |
+| `min(x, y)` | $\mathrm{min}(x,y)$ | Minimum of $x$ and $y$ |
+| `max(x, y)` | $\mathrm{max}(x,y)$ | Maximum of $x$ and $y$ |
+
+
+### Differential equations
+
+In the dynamical systems builder, it is necessary to specify time
+derivatives of variables in order to define ordinary and stochastic
+differential equations.  A simple example shows how this works: the
+input `m * D^2 x + k * D x + \omega^2 x = A * cos(\Omega * t)` results
+in the following rendered equation
+
+$$m \frac{d^2 x}{dt} + k \frac{dx}{dt} + \omega^2 x = A \cos(\Omega t)$$
+
+Here, an expression of the form
+
+ * `D y` represents the first time derivative of $y$, $dy/dt$, and
+ * `D^n y`, with `n` an integer, represents the $n$th time derivative
+    of $y$, $d^n y/dt^n$.
+
+It is important to note that we must write `D x` and *not* `Dx`.  The
+space between the `D` and the variable name is important: `Dx` is a
+single identifer, `D x` is a derivative.
+
+
+### Wiener terms
+
+In stochastic differential equations, as well as ordinary derivatives,
+we need to be able to represent Wiener terms (increments of white
+noise stochastic processes).  In order to maintain a consistent syntax
+between ODEs and SDEs, we adopt a slight abuse of notation, where for
+a Wiener process $W_t$, we write `D W` to formally stand for the
+derivative of this process, which is itself a white noise process.
+
+This means that the stochastic differential equation
+
+$$d X_t = \theta(\mu - X_t) + \sigma d W_t$$
+
+is represented as `D x = theta * (mu - x) + sigma * D W` and is in
+fact rendered as
+
+$$\frac{d x}{d t} = \theta(\mu - x) + \sigma \frac{d W}{d t}$$
+
+even though, strictly, Wiener processes are not differentiable.
+
+For systems of SDEs requiring multiple Wiener processes, we use the
+symbols `W1`, `W2`, etc., as for example:
+
+`D S = mu * S + sqrt(nu) * S * D W1`
+
+`D nu = kappa * (theta - nu) + xi * sqrt(nu) * D W2`
+
+representing the system of SDEs
+
+$$d S_t = \mu S_t + \sqrt{\nu_t} S_t d W^{(1)}_t$$
+$$d \nu_t = \kappa (\theta - \nu_t) + \xi \sqrt{\nu_t} d W^{(2)}_t$$
+
+Here $W^{(1)}_t$ and $W^{(2)}_t$ are two separate (but possibly
+correlated) Wiener processes.
+
+
+### Auxiliary functions
+
+In the dynamical systems builder, it is possible to make use of
+auxiliary functions to simplify the expression of differential
+equations.  If we want to write the system
+
+$$m \frac{d^2 x}{dt} + k \frac{dx}{dt} + \omega^2 x = f(t)$$
+
+$$f(t) = A \cos(\Omega t)$$
+
+we can simply introduce the symbol `f` as a function into an equation,
+i.e.
+
+`m * D^2 x + k * D x + omega^2 * x = f(t)`
+
+and then fill in the right hand side of the auxiliary function `f` in
+the new field that appears in the builder window.

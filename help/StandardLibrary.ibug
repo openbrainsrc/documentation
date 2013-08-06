@@ -1,0 +1,584 @@
+# Baysig Standard Library
+
+Here is the Baysig standard library. You can use the function in these
+files in your documents.
+
+```
+module Prelude where
+
+--# BUILTINS + - * > < / == ^ ^+^ %*% %*^ ! !! powInt round log exp sin cos tan incr primUnit sqrt pi unround abs floor div atan2 mod fillV fillM listToVec dim mdims observeSig vecToList fmap filter assert_that
+
+-- Functions
+
+id x  = x
+
+const x y = x
+
+f . g = \x -> f (g (x))
+
+f $ x = f x
+
+-- Booleans
+
+data Bool = True | False
+
+
+True && True = True
+_ && _ = False
+
+False || False = False
+_ || _ = True
+
+if : Bool -> a -> a -> a
+if True x _ = x
+if False _ y = y
+
+or : Bool -> Bool -> Bool
+or False False = False
+or _ _ = True
+
+not False = True
+not True = False
+
+-- Lists
+
+data List a = Cons a (List a) | Nil
+
+head (Cons x _) = x
+
+tail (Cons x xs) = xs
+
+scanl op acc Nil = Cons acc Nil
+scanl op acc (Cons x xs) = Cons acc (scanl op (op acc x) xs)
+
+-- return last element
+last (Cons x Nil) = x
+last (Cons x xs) = last xs
+
+-- drop last elemet
+init (Cons x Nil) = Nil
+init (Cons x xs) = Cons x (init xs)
+
+map f Nil = Nil
+map f (Cons x xs) = Cons (f x) (map f xs)
+
+{-
+filter _ Nil = Nil
+filter p (Cons x xs) = 
+   if p x then Cons x (filter p xs)
+      	  else (filter p xs)
+-}
+
+
+take 0 _ = Nil
+take n Nil = Nil
+take n (Cons x xs) = Cons x $ take (n-1) xs
+
+drop 0 xs = xs
+drop n Nil = Nil
+drop n (Cons x xs) = drop (n-1) xs
+
+fromTo n m 
+  = if (n<m)  
+       then (Cons n (fromTo (n+1) m))
+       else (Cons n Nil)
+
+bigSum : Int -> Int -> (Int -> Real) -> Real
+bigSum lo hi f = sum $ map f $ fromTo lo hi
+
+replicate 0 x = Nil
+replicate n x = Cons x (replicate (n-1) x)
+
+product Nil = 1
+product (Cons x xs) = x * product xs
+
+sum Nil = 0
+sum (Cons x xs) = x + sum xs
+
+foldl op acc Nil = acc
+foldl op acc (Cons x xs) = foldl op (op acc x) xs
+
+zip Nil _ = Nil
+zip _ Nil = Nil
+zip (Cons x xs) (Cons y ys) = Cons (x,y) $ zip xs ys
+
+max x y = if x > y then x else y
+min x y = if x < y then x else y
+
+neg x = 0 - x
+
+
+ix 0 (Cons x _) = x
+ix n (Cons _ xs) = ix (n-1) xs
+
+length Nil = 0 
+length (Cons x xs) = 1+length xs
+
+linspace from to num = 
+  let dt = (to-from)/unround num
+      is = fromTo 0 (num-1)
+  in map (\i -> unround i *dt + from) is
+ 
+fst (x,_) = x
+snd (_,y) = y
+
+data Maybe a = Just a | Nothing
+
+-- Sampling functions
+
+data Prob a = Sampler (Seed -> (a, Seed))
+            | Samples (List a)
+
+countSamples (Samples xs) = Just $ length xs
+countSamples (Sampler _) = Nothing
+
+unit = Sampler primUnit
+
+primOneOf : List a -> Seed -> (a, Seed)
+primOneOf xs seed 
+   = let (u, nextSeed) = primUnit seed
+         idx = floor $ u*(unround $ length xs )
+     in (ix idx xs, nextSeed)
+
+--primSample : Seed -> Prob a -> (a, Seed)
+--primSample seed (Sampler samf) = samf seed
+--primSample seed (Samples ss) = primOneOf ss seed
+
+
+ >>= : Prob a -> (a -> Prob b) -> Prob b
+ (Sampler sf) >>= f = 
+     Sampler $ \rs-> let (x, rs') = sf rs 
+                     in case f x of
+                           Sampler g -> g rs'
+                           Samples xs -> primOneOf xs rs'
+(Samples xs) >>= f = 
+    Sampler $ \rs-> let (x, rs') = primOneOf xs rs
+                    in case f x of
+                          Sampler g -> g rs'
+                          Samples ys -> primOneOf ys rs'
+
+return x = Sampler $ \s-> (x, s)
+
+
+mapM : (a -> Prob b) -> List a -> Prob (List b)
+mapM f Nil = return Nil
+mapM f (Cons x xs) = prob 
+   y ~ f x
+   ys ~ mapM f xs
+   return $ Cons y ys
+
+append : List a -> List a -> List a
+append Nil ys = ys
+append (Cons x xs) ys = Cons x (append xs ys)
+
+concat : List (List a) -> List a
+concat Nil = Nil
+concat (Cons xs xss) = append xs (concat xss)
+
+invlogit x = 1/(1+exp(-x))
+
+logit x = log(x/(1-x))
+
+boolToReal : Bool -> Real
+boolToReal True = 1.0
+boolToReal False = 0.0
+
+repeat n sam = for 1 n $ \i -> sam 
+
+for : Int -> Int -> (Int -> Prob a) -> Prob (List a)
+for n m s = if (n<m) 
+                then (prob x ~ s n 
+                           xs ~ for (n+1) m s
+                           return (Cons x xs)
+                     )
+                else (prob v ~ s n
+                           return (Cons v Nil)
+                     )
+
+square x = x * x
+
+step x = if x < 0 then 0 else 1
+
+
+fac 1 = 1
+fac n = n * fac (n-1)
+
+zipWithNats : List a -> Num b -> List (Num b,a)
+zipWithNats Nil _ = Nil
+zipWithNats (Cons x xs) n = Cons (n,x) $ zipWithNats xs (n+1)
+
+unSamples (Samples xs) = xs
+
+chainPlot : Prob Real -> Plot
+chainPlot (Samples xs) = Plot []  $ return [Points $ zipWithNats xs 0]
+
+distPlot : Prob Real -> Plot
+distPlot p = style [("fill", "pop_colour"), ("fill-opacity", "0.3"), ("stroke", "none"),("bar-width","0.8") ] $ distPlot0 p
+
+distPlot0 (Samples xs) = Plot [("range-y", "0")] $ return [Histogram xs]
+distPlot0 (sampler) = Plot [("range-y", "0")] $ prob 
+    xs ~ repeat 2000 sampler
+    return [Histogram xs]
+
+histogram : List (Num a) -> Plot
+histogram xs = Plot [] $ return [Options [("fill", "pop_colour"),("fill-opacity", "0.3"), ("stroke", "none"),("bar-width","0.8")] [Histogram $ map unround xs]]
+
+over : List Plot -> Plot
+over plots = Plot [] $ prob 
+   items ~ mapM unPlot plots
+   return $ map (\(Plot os _, rdns)-> Options os rdns) $ zip plots items
+
+scatterPlot : List (Num a,Num b) -> Plot
+scatterPlot xys = style [("fill", "pop_colour"),("marker-size", "30"), ("marker","circle"), ("stroke", "none")] $ Plot [] $ return [Points $ map (\(x,y)-> (unround x, unround y)) xys]
+
+plines : Prob (List (Num a,Num b)) -> Plot
+plines plns = style [("stroke-opacity", "0.2"), ("stroke-width", "2")] 
+                    $ Plot [] $ repeat 50
+                              $ fmap (\xys -> Lines $ map (\(x,y)-> (unround x, unround y)) xys) plns
+
+ppoints : Prob (List (Real,Real)) -> Plot
+ppoints ppts = Plot [("fill", "pop_colour")] $ repeat 50 $ fmap Points ppts
+
+sigPlot : (Real->Real) -> Plot
+sigPlot sig = Plot [("fill", "pop_colour"), ("stroke-width", "2")] $ return [Timeseries sig]
+
+psigPlot : Prob (Real -> Real) -> Plot
+psigPlot (Samples sigs) = Plot [("fill", "pop_colour"), ("stroke-opacity", "0.2"), ("stroke-width", "2")] $ return $ map Timeseries $ thinTo 20 sigs
+psigPlot (Sampler f) = Plot [("fill", "pop_colour"), ("stroke-opacity", "0.2"), ("stroke-width", "2")] $ prob
+   sigs ~ repeat 20 (Sampler f) 
+   return $ map Timeseries sigs
+
+psigNPlot : Int -> Prob (Real -> Real) -> Plot
+psigNPlot n (Samples sigs) = Plot [("fill", "pop_colour"), ("stroke-opacity", "0.2"), ("stroke-width", "2")] $ return $ map Timeseries $ thinTo n sigs
+psigNPlot n (Sampler f) = Plot [("fill", "pop_colour"), ("stroke-opacity", "0.1"), ("stroke-width", "2")] $ prob
+   sigs ~ repeat n (Sampler f) 
+   return $ map Timeseries sigs 
+
+
+style : List (String,String) -> Plot -> Plot
+style opts (Plot pos plr) = Plot pos $ fmap (\lrs-> [Options opts lrs]) plr
+
+axisLabels : String -> String -> Plot -> Plot
+axisLabels xlab ylab (Plot popts plns) 
+  = Plot (Cons ("axis-x-label", xlab) $ Cons ("axis-y-label", ylab) $ popts) plns 
+
+-- Plot 
+-- first argument: global style for the plot
+-- second argument: we will draw *one* sample from this Prob (List (Radian)) 
+--    so we have a List Radian and then plot all the elements in it. 
+
+data Plot = Plot (List (String,String)) (Prob (List Radian))
+          | PlotRow (List (String,String)) (List Plot)
+          | PlotColumn (List (String,String)) (List Plot)
+
+unPlot (Plot _ x) = x
+unPlotOpts (Plot os x) = os
+
+data Radian = Lines (List (Real,Real))
+            | Points (List (Real,Real))
+            | Bars (List (Real,Real))
+	    | Histogram (List Real)
+	    | Timeseries (Real -> Real) 
+	    | Options (List (String,String)) (List Radian)
+
+--getT : Real? -> Real? -> (Real,Real)
+getT dt? tmax? = (dt,tmax)
+
+sigLast sig = case observeSig sig of 
+   ObservedSignal dt t0 pts -> pts ! (dim pts - 1)
+   ObservedXYSignal pts -> snd $  pts ! (dim pts - 1)
+
+data ObservedSignal a =
+     ObservedSignal Real Real (Vector a)
+   | ObservedXYSignal (Vector (Real,Real))
+
+data Always = Always (Prob Bool)
+data Never = Never (Prob Bool)
+data Mostly = Mostly (Prob Bool)
+data SamplerDensity = SamplerDensity (Prob Real) (Real -> Real) 
+                    | SamplerMass (Prob Int) (Int -> Real)
+		    | SamplesSame (Prob Real) (Prob Real)
+
+between lo hi x = x > lo && x < hi
+
+
+--list parser
+
+runP xs my = fst ( my xs)
+runP1 my xs = fst ( my xs)
+
+returnP x xs = (x,xs)
+bindP f g xs = let (x,xs') = f xs
+               in (g x) xs'
+
+headP (Cons x xs) = (x,xs)
+takeP n xs = (take n xs, drop n xs) 
+
+forP Nil f xs = (Nil, xs)
+forP (Cons a as) f xs = bindP (f a) (\y-> bindP (forP as f) (\ys-> returnP (Cons y ys) )) xs
+
+noP xs = ((),xs)
+
+fmapP f mx = bindP mx (\x-> returnP (f x))
+
+fixP : Int -> Prob a -> Prob (Prob a)
+fixP n (Sampler f) = prob xs ~ repeat n (Sampler f)
+                          return $ Samples xs 
+
+fixP n (Samples xs) 
+  = return $ Samples $ thinTo n xs
+
+
+thin skip xs = map snd $ filter (\(i,x) -> mod i (skip+1) == 0) $ zip (fromTo 0 (length xs-1)) xs 
+
+thinTo n xs = 
+    let nxs = length xs
+        ratio = round (unround nxs/unround n)
+    in thin ratio xs
+
+-- linear algebra
+
+diagL : List Real -> Matrix Real
+diagL = diag . listToVec
+
+diag : Vector Real -> Matrix Real
+diag v = fillM (dim v, dim v) $ \(i,j) -> if i==j then v!i else 0.0
+
+mmap : (a-> b) -> Matrix a -> Matrix b
+mmap f m = fillM (mdims m) $ \(i,j) -> f $ m !! (i,j)
+
+transM : Matrix a -> Matrix a
+transM m = fillM (mdims m) $ \(i,j) -> m !! (j,i)
+
+
+module Distributions where
+
+import Prelude.bug
+
+--# BUILTINS invlndet pack packXYL expect optimise choose svd
+
+
+oneOf xs = prob 
+  idx ~ fmap floor $ uniform 0.0 (unround $ length xs)
+  return $ ix idx xs
+
+oneOfLogPdf xs _ = 1.0 / unround (length xs)
+
+uniformLogPdf lo hi x = if (x<hi && x>lo) then (log 1 - log (hi-lo)) else (0.0-1.0e20)
+
+uniform lo hi = prob
+   x ~ unit
+   return (x*(hi-lo)+lo)
+
+intBetween lo hi = prob
+   x ~ unit
+   return $ floor $ (x*(unround $ hi+1-lo)+unround lo)
+
+intBetweenLogPdf lo hi x = 1
+
+any : Prob a
+any = undefined
+
+anyLogPdf x = 1.0
+
+improper_uniform = gamma 1 0.1
+improper_uniformLogPdf _ = 1.0
+
+improper_uniform_positive = gamma 1 1
+improper_uniform_positiveLogPdf x = if (x>0) then 1.0 else (0.0-1.0e20)
+
+unormal = prob
+   u1 ~ unit
+   u2 ~ unit
+   return (sqrt ((0.0-2.0) * log u1) * cos(2.0 * pi * u2)) 
+
+oneTo n = prob
+   x ~ uniform 0.5 (unround n + 0.5)
+   return (round x)
+
+oneToLogPdf hi x = if (x<(hi+1) && x>0) then 1.0 else (0.0-1.0e10)
+
+normal mean variance = prob
+   u ~ unormal
+   return (u * (sqrt variance) + mean)
+
+normalLogPdf mean variance x
+   = log 1 - 0.5*log (2.0*pi*variance) - ((x-mean)^2)/(2*variance)
+
+logNormal mean variance = fmap exp $ normal mean variance
+
+logNormalLogPdf mean variance x 
+   = log (1/sqrt (2.0*pi*variance)) + (0.0-((log x-mean)*(log x-mean)/(2*variance)))
+
+normalLines : Real -> Real -> List (Real,Real)
+normalLines mean v = 
+  let f = \x -> (x, exp $ normalLogPdf mean v x)
+  in map f $ linspace (mean-3*sqrt v) (mean + 3*sqrt v) 50
+
+binomialProb n p k = (choose  n k) * (powInt p k) * powInt (1.0-p) (n-k)
+binomialLogProb n p k = (log $ choose  n k) + ((unround k) * log p) + (unround (n-k) * log (1.0-p))
+
+bernoulli p = prob u ~ unit
+                   return (u < p)
+
+bernoulli01 : Real -> Prob Int
+bernoulli01 p = prob 
+   u ~ unit
+   if (u < p)
+      then return 1
+      else return 0
+
+bernoulliLogPdf p True = log $ p
+bernoulliLogPdf p False = log $ (1-p)
+
+bernoulli01LogPdf p 1 = log $ p
+bernoulli01LogPdf p 0 = log $ (1-p)
+
+binomial n p = prob
+   bools ~ repeat n (prob u ~ unit
+                          return (u < p)
+                    )
+   return (countTrue bools)
+   
+exponential lam = prob
+  u ~ unit 
+  return $ neg $ log u / lam
+
+exponentialLogPdf lam x = lam*exp(-lam*x)
+
+poisson : Real -> Prob Int
+poisson lam = poissonAux (exp (-lam)) 0 1
+
+poissonAux bigl k p 
+  = if (p > bigl) then (unit >>= \u -> poissonAux bigl (k+1) (p*u))
+                  else (return $ k-1)   
+
+poissonLogPdf lam x = lam^(unround x) * exp(-lam) / (unround $ fac x)
+
+countTrue Nil = 0
+countTrue (Cons True bs) = 1 + countTrue bs
+countTrue (Cons False bs) = countTrue bs
+
+betaAux n = prob us ~ repeat n unit
+                 return $ log $ product us
+
+beta a b = prob g1 ~ betaAux a
+                g2 ~ betaAux b
+                return $ g1/(g1+g2)
+
+betaLogPdf a b x = log $ (1.0/ betaf (unround a) (unround b)) * (powInt x (a-1)) * (powInt (1.0-x) (b-1))
+
+gamma k theta 
+          = if k < 1.0
+               then (prob u ~ unit
+                          x ~ gamma (1.0+k) theta
+                          return (x * u^(1.0/k))
+                    )
+               else gammaAux k theta
+
+invGamma a b = prob g ~ gamma a (1.0/b)
+                    return (1.0 / g)
+
+gammaAux a b = prob
+      d = a - (1.0 / 3.0)
+      c = 1.0 / (3.0 * sqrt d) -- (1 / 3) / sqrt d
+      x ~ unormal
+      cx = c * x
+      v = (1.0 + cx) ^ 3.0
+      x_2 = x * x
+      x_4 = x_2 * x_2
+      if cx < (-1.0)
+         then gammaAux a b
+         else (prob u ~ unit
+                    if or (u < 1.0 - 0.0331 * x_4)
+                          (log u < 0.5 * x_2  + d * (1.0 - v + log v))
+                       then return (b * d * v)
+                       else gammaAux a b
+
+              )
+
+unfold : Int -> a -> (a -> Prob a) -> Prob (List a)
+unfold n x0 s = unfoldN 1 n x0 (\i -> s) 
+
+unfoldN : Int -> Int -> a -> (Int -> a -> Prob a) -> Prob (List a)
+unfoldN n m lastx s 
+    = if (n<m) 
+         then (prob x ~ s n lastx 
+                    xs ~ unfoldN (n+1) m x s 
+                    return (Cons x xs)
+              )
+         else (prob v ~ s n lastx
+                    return (Cons v Nil)
+              )
+
+improper_uniformInit = 1.0
+
+wiener : Real? -> Real? -> Prob (Real-> Real)
+
+wiener dt? tmax? = prob
+   n = round (tmax/dt) + 1
+   ns ~ repeat n unormal
+   etas = map (\u -> u*sqrt dt) ns
+   return $ pack dt (0.0-dt) $ listToVec (scanl (\x-> \y-> x+y) 0.0 etas)
+
+d : Real? -> (Real -> Real) -> Real -> Real
+d dt? w t = (w t - w (t-dt) ) / dt
+
+diff : Real? -> (Real -> Real) -> Real -> Real
+diff ?dt = d dt
+
+
+decide : Real -> Vector Real -> Prob a -> (Vector Real -> a -> Real) -> Vector Real
+decide tol ini dist util 
+   =  optimise tol ini $ \vaction -> expect (fmap (util vaction) dist) 
+
+nsig : (Real -> Real) -> Real -> Prob (Real -> Real)
+nsig sig v 
+  = case observeSig sig of 
+       (ObservedSignal dt t0 vpts) -> prob              
+          ns ~ repeat (dim vpts) $ normal 0 v
+	  return $ pack dt t0 $ listToVec $ map (\(x,y)-> x+y) $ zip ns $ vecToList vpts
+
+
+quantile : Real -> Prob Real -> Real
+quantile x (Samples xs) = 
+    let total = length xs
+        under = length $ filter (\y-> x<y) xs
+    in unround under / unround total                       
+
+-- calculate gamma
+--http://www.haskell.org/haskellwiki/Gamma_and_Beta_function
+
+ser : Real
+ser = 1.000000000190015
+
+cof : List Real
+cof = Cons 76.18009172947146 $ Cons (-86.50532032941677) $ Cons 24.01409824083091 
+      $ Cons (-1.231739572450155) $ Cons 0.001208650973866179 $ Cons (-0.000005395239384953) Nil
+
+gammaln : Real -> Real
+gammaln xx = let tmp' = (xx+5.5) - (xx+0.5)*log(xx+5.5)
+                 ser' = ser + sum (map ( \ (y,c) -> c/(xx+y)) $ zip (fromTo 1 7) cof)
+             in -tmp' + log(2.5066282746310005 * ser' / xx)
+
+betaf z w = exp (gammaln z + gammaln w - gammaln (z+w)) 
+
+gammaLogPdf k theta x = 
+   (k-1)*log x + (-x/theta) - k*log (theta) -  (gammaln k)
+
+invGammaLogPdf a b x =
+ log $ (b^a/(exp $ gammaln a))*(x)^(-a-1)*exp(-b/x)
+
+
+cookAssert s = SamplerDensity s (uniformLogPdf 0 1)
+
+
+multiNormalLogPdf vmean cov = undefined
+
+multiNormal vmean cov = prob
+   ns ~ repeat (dim vmean) $ normal 0 1
+   [u,s,v] = svd cov
+   j = v %*% mmap sqrt s %*% transM v
+   return $ vmean ^+^ j %*^ listToVec ns
+
+```

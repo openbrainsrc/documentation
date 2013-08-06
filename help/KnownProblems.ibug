@@ -1,0 +1,8 @@
+## Known Problems
+
+### BayesHive
+
+* BayesHive is slow, because data is transferred to your browser needlessly many times. There are many ways in which we can improve the responsiveness of the web application.
+* The back button is broken.
+
+         

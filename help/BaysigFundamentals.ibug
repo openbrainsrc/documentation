@@ -1,0 +1,126 @@
+## Baysig quick tour: fundamentals
+
+This is the first document in a "quick tour" of the Baysig programming
+language. 
+
+The tour can be found in these sections:
+
+* Baysig quick tour: fundamentals (this document)
+* [[Baysig quick tour: probability distributions]]
+* [[Baysig quick tour: Bayesian statistical inference]]
+* [[Baysig quick tour: dynamical systems]]
+
+### What is Baysig?
+ 
+Baysig is a probabilistic, spatiotemporal and purely functional
+programming language. That's a bit of a mouthful, so I'll define what
+I mean by those terms before we dive in:
+
+* Probabilistic: the primary goal of Baysig is to support Bayesian
+  inference in complex models, in particular dynamical systems models
+  of observed data. Probability distributions are *first-class* in
+  Baysig, meaning they can be passed around and manipulated.
+
+* Spatiotemporal: Baysig supports spatially and temporally indexed
+  data and differential equations. In particular, it seamlessly
+  supports inference in continuous-time models based on discretely
+  observed data.
+
+* Functional: all computations are defined by applying purely
+  mathematical functions; that is functions that have no side-effects
+  but are also *first-class* such that they can be passed as arguments
+  to other functions or stored. Baysig is inspired by several
+  functional programming languages, in particular the syntax of
+  [Haskell](http://www.haskell.org/haskellwiki/Haskell) and the
+  semantics of [Standard
+  ML](http://en.wikipedia.org/wiki/Standard_ML).
+
+This document will give a quick tour of the Baysig language, starting
+with the foundations, functions and data types, before moving on to
+probability distributions, Bayesian inference and dynamical
+systems. Towards the end, we explain how the interaction with Baysig
+constitutes an environment for *reproducible research*.
+
+This tour is not a thorough introduction to Baysig. Rather, it
+aims to give a sense of how Baysig is different from other programming
+languages and what kinds of things you can do with it. 
+
+### Functions and Types
+   
+The core of Baysig is purely functional programming language, in which
+the central notion is of course the *function*. Functions are simple
+to define
+
+>> f : Int -> Int
+
+> f x = 2 * x + 1
+
+and evaluate
+
+?> f 5
+
+Apart from defining and applying functions, we can also define new
+data types, like this
+
+> data Day  = Mon | Tue | Wed | Thu | Fri | Sat | Sun
+
+That defines a data type (Day) which has seven different constructors
+(Mon - Sun), each specifying a possible value of the type Day. I can
+define a new variable with one such value
+
+> myFavoriteDay = Sat
+
+That variable has a *type* - Day. We can declare that
+
+> myFavoriteDay : Day
+
+but there is no need to. If you omit the type declaration, the
+compiler will *always* be able to figure it out for itself and will
+tell you if there is an inconsistency in your code -- a type error.
+
+A constructor can be used as a *pattern* in a function definition:
+
+> isWeekend Sat  =  True
+> isWeekend Sun  =  True
+> isWeekend _    =  False
+
+Here, isWeekend has type `Day -> Bool`; that is, it is function that
+takes a `Day` and returns a `Bool`. The Bool data type is defined as:
+
+< data Bool = True | False
+
+That's almost all of Baysig. But you are allowed to do things that are
+banned in boring programming languages. Arguments passed to functions
+can themselves be functions:
+
+> twice g x = g (g x)
+
+Here, the function twice takes two arguments of which the first (`g`)
+is a function.
+
+?> twice f 1
+
+You can check for yourself that this makes sense from the definition
+of `f` above. 
+
+What is the type of twice? The function `g` must return a value of the
+same type as its argument, otherwise we would not be able to apply it
+again. But within the definition of `twice`, it doesn't matter what
+that type is. It works for any type. That is, if `t` is a type, g must
+be of type `t -> t`. The concrete type can be filled in later, when
+twice is called with a particular argument (e.g. `f`). By convention,
+type variables, which can be filled in by concrete types, are denoted
+by lower-case letters. Thus the type of twice in Baysig is
+
+> twice : (t-> t) -> t -> t
+
+When passing around functions, it is not always convenient to have to
+give them names (such as `f` in `f x = 2*x+1`). After all, integers
+can be passed without naming them; for instance in `f (2+2)`, the
+expression `2+2` is not assigned a name. Likewise, expressions
+denoting functions can be constructed anonymously: `\x-> x+1` is read
+as "the function that takes an argument `x` and returns `x+1`." Thus
+`twice f 1` can be written `twice (\x->2*x+1) 1`. This is occasionally
+useful.                     
+
+The quick tour of Baysig continues in the document [[Baysig quick tour: probability distributions]].
