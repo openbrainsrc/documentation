@@ -1,0 +1,80 @@
+### Documents
+
+Documents in BayesHive contain three different kinds of sections,
+which are distinguished by the first character(s) in the line: text, code
+and questions.
+
+```
+  This is text
+
+  > thisIsCode = "this is code"
+
+  The following line is a question:
+
+  ?> 2 + 2
+
+```
+
+## Text
+
+Any line in a document that does *not* start with a `>` or `?>` is
+**text**. You can use text to provide explanations of the code, to
+introduce the subject; or whatever else you would like to write. 
+
+The text is written in
+[markdown](http://en.wikipedia.org/wiki/Markdown) which is a
+lightweight notation for formatting text. Most of what you write (for
+instance, words or punctuation) will appear directly in the typeset
+document identically to the markdown notation. In addition, some
+special characters can be used to format the text:
+
+| Input                | Result             |
+|----------------------|--------------------|
+| `*italics*`          | *italics*          |
+| `**bold**`           | **bold**           |
+| `[Yahoo!](yahoo.com)`| [Yahoo!](yahoo.com)|
+
+Section headings start with a `#`. 
+
+``` 
+  # This is a section
+
+  ## This is a subsection
+
+  ### this is a subsubsection
+
+```
+
+[Additional documentation](http://daringfireball.net/projects/markdown/syntax)
+
+## Code 
+
+Lines that start with `> ` are interpreted as code written in the
+Baysig language. They must consist of a *declaration*, a *type
+annotation*, a *type defintion* or a *source extraction.* 
+
+Baysig uses a *layout rule* for determining when one declaration ends
+and another one starts. This replaces the brakcets found in many
+programming languages with an indentation. 
+
+```
+  This is a function
+  
+  > f x 
+  >   = x + 1
+
+```
+
+Please consult the Baysig quick tour and Baysig reference manual for
+further documentation. 
+
+## Questions
+
+Document sources can contain *questions* which in the typeset document
+are augmented with answers. Questions start with `?> ` and are
+followed by a Baysig expression which is *evaluated* to obtain the
+answer.
+
+Some answers generate special outputs, depending on their
+types. *Lists of records* are typeset at tables and *Plot* values are
+replaced by plots of the underlying data.
