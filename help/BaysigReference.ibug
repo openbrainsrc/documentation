@@ -49,17 +49,19 @@ The interpretation of a line in a Baysig document depends on the first one or tw
 |-------------------|-------------|---------------| 
 | `>`               | Code        | `> f x = x+2` |
 | `?>`              | Question    | `?> f 5`      |
-| anything else     | Comment     | Hello world!  |
+| anything else     | Text        | Hello world!  |
 
 When the document is typeset, questions are replaced by their answers.
 This allows you to build a full report or any document describing a
 particular analysis within the Baysig environment.
 
-TODO: example.
+Documents are further described in the [Documents help
+file](https://bayeshive.com/helppage/Documents).
 
-TODO: markdown
-
-TODO: layout rule
+Baysig is *white-space sensitive* like Python and Haskell. Several
+identifiers (`let`, `case`, `prob`, `where`) start a block of indented
+code that terminated only when a symbol that has less indentation than
+the first symbol of the indented code block.
 
 # Baysig Core language
 
@@ -493,7 +495,9 @@ unormal = prob
 
 Four things are happening in this code snippet:
 
-1. the "prob" keyword introduces a block for sequential sampling
+1. the "prob" keyword introduces a block for sequential sampling. This
+   block starts on the next symbol (here `u1`) and continues until
+   there next appears a symbol with less indentation then `u1`.
 
 2. two values (`u1` and `u2`) are drawn independently from the `unit`
    distribution
