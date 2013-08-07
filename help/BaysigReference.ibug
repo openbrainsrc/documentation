@@ -34,7 +34,7 @@ TODO: conventions used in help files
 
 This and the other [help files](https://bayeshive.com/help) are
 themselves written as Baysig documents. You can view the source on the
-[GitHub repository for BayesHive and Baysig documentation](https://github.com/openbrainsrc/documentation)
+[GitHub repository for BayesHive and Baysig documentation](https://github.com/openbrainsrc/documentation).
 
 ## Literate documents
 
@@ -104,7 +104,8 @@ represent the number itself in a calculation.
 However, since Baysig is a functional programming language, there is
 no way to change the value of a variable once it has been assigned.
 
-TODO: scientific notation (1e5) for numbers
+You can write numbers that are very big or very small using the
+scientific notation. For example, `1e3 = 1000` and `2.1e-3 = 0.0021`.
 
 ## Functions
 
