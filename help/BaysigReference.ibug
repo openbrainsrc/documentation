@@ -32,7 +32,9 @@ TODO: what assumptions does the reference manual make about the readers?
 
 TODO: conventions used in help files
 
-TODO: help files are themselves Baysig. how to view?
+This and the other [help files](https://bayeshive.com/help) are
+themselves written as Baysig documents. You can view the source on the
+[GitHub repository for BayesHive and Baysig documentation](https://github.com/openbrainsrc/documentation)
 
 ## Literate documents
 
