@@ -430,13 +430,121 @@ The constructs `with` and `when` are defined in terms of the wildcard pattern.
 
 ## Probability distributions
 
-Prob type. unit, normal. return.
+Probability distributions in Baysig are *first-class entities* - they
+can be build from simpler parts, assigned to variables and passed as
+arguments to functions. Probability distributions have type `Prob a`
+where the type variable `a` indicates the type of values that can be
+drawn from the distribution. For instance the standard normal
+distribution (`unormal`, with mean 0 and variance 1) has type `Prob
+Real` which means that value that represent real numbers (0.1, 3.141
+etc) can be drawn from this distribution. The non-standard normal
+distribution `normal` has type `Real -> Real -> Prob Real`, because it
+takes two arguments, the parameters (mean and variance, respectively). 
 
-plot them
+The fundamental probability distribution in Baysig is `unit` with no
+parameters, from which numbers of type `Real` and between 0 and 1 are
+drawn. We cannot do very much with probability distributions yet, but
+at least we can plot samples from them:
 
-compose with >>=
+?> distPlot unit
 
-prob notation: bind, lets, 
+One simple way to manipulate probability distributions is the function
+`fmap`, which applies a function to values drawn from the
+distribution. Thus the distribution `fmap (\x -> x+1.5) unit` yields
+values between 1.5 and 2.5 (because we add 1.5 to the values drawn
+fron unit). 
+
+You can look at distribution in a few more ways, apart from plotting
+them. If you just ask for a probability distribution on a line in a
+document using `?>`, Baysig will try to summarise it in the
+output. For real-valued probability distributions, that means printing
+the mean plus/minus the standard deviation:
+
+?> fmap (\x -> x+1.5) unit
+
+The bernoulli distribution is already defined in [Baysig's standard
+library](https://bayeshive.com/helppage/Baysig%20Standard%20Library). But
+if it were not, we could already define it using `unit` and `fmap`:
+
+> myBernoulli p = fmap (\x-> x < p) unit
+
+Defining distributions in this way is a lot of fun (except for the
+gamma distribution, which is no fun at all).
+
+If we "ask" for a Boolean probability distribution, Baysig gives you
+the proportion that is True:
+
+?> myBernoulli 0.3
+
+Sometimes we need something more powerful than `fmap` to build new
+distributions. Sometimes you want to sequence draws, such that one
+value is sampled, then another, and then perhaps the two samples are
+combined. We can use the "prob" and "~" notation for that. For
+instance, in the definition of `unormal` based on the [Box-Muller
+transform](https://en.wikipedia.org/wiki/Box%E2%80%93Muller_transform):
+
+```
+unormal = prob
+   u1 ~ unit
+   u2 ~ unit
+   n = sqrt (-2 * log u1) * cos(2 * pi * u2)
+   return n 
+```
+
+Four things are happening in this code snippet:
+
+1. the "prob" keyword introduces a block for sequential sampling
+
+2. two values (`u1` and `u2`) are drawn independently from the `unit`
+   distribution
+
+3. a new value `n` is calculated in a deterministic way from an
+   equation. This equation is allowed to reference the values drawn
+   from the previous distribution. In the same way, further draws from
+   probability distributions can reference values previously drawn or
+   calculated. 
+
+4. The "prob" block must end in a probability distribution which
+   defines that value of overall distribution (here `unormal`). The
+   function `return` takes an expression (here `n`) that is
+   deterministic, given all the values that have been drawn, and gives
+   a probability distribtion that always returns that value. 
+
+*Statisticians* will recognize the "prob/~" notation as being very
+similar to the hierarchical statistical notation, but a bit more
+formal and less ambiguous. *Functional programmers* will recognize
+this the construction of a *monad*.
+  
+This notation also allows us to build some simple utility functions to
+help build more complex probability distributions. The function
+`repeat` can be used to repeatedly draw from independently from
+identical distributions. If `p` is a probability distribution of type
+`Prob a`, then `repeat 10 p` is a probability distribution over lists
+of type `a`, each of which having 10 elements. For instance, `repeat
+20 unormal` has type `Prob (List Real)`. 
+
+
+| Distribution      | Name               | Parameters           | Value type  |
+|-------------------|--------------------|-----------------------------|-------| 
+| uniform           | `uniform`          | `lo : Real` `hi : Real`     | `Real`
+| improper uniform  | `improper_uniform` | none                    |  `Real`
+| improper uniform positive  | `improper_uniform_positive` | none   | `Real`
+| list choice       | oneOf | `xs : List a` | `a`
+| choice 1..n       | oneTo | `n : Int` | `Int` 
+| unit normal       | `unormal`    |  none | `Real`
+| normal            | `normal` | `mean : Real` `variance : Real` | `Real`
+| binomial          | `binomial` | `n : Int` `p : Real` | `Int`
+| bernoulli         | `bernoulli` | `p : Real` | `Bool`
+| bernoulli01       | `bernoulli` | `p : Real` | `Real`
+| exponential       | `exponential` | `lambda : Real` | `Real`
+| poisson           | `poisson`  | `rate : Real` | `Int`
+| beta              | `beta` | `a : Real` `b : Real` | `Real`
+| gamma		    | `gamma` | `k : Real` `theta : Real` | `Real`
+| inverse gamma	    | `invGamma` | `a : Real` `b : Real` | `Real`
+| multivariate normal | `multiNormal` | `mean : Vector Real` `cov : Matrix Real` | `Vector Real`
+| wiener process    | `wiener` | none | `Real -> Real`
+
+TODO: sample
 
 ## Differential equations
 
