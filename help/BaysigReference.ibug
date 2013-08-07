@@ -680,7 +680,7 @@ model = prob
   ys ~ unfold 100 (x0,y0) $ \(xp,yp) -> prob
          x ~ normal xp v
          y ~ normal yp v
-	 return (x,y)
+         return (x,y)
   return $ map fst ys
 ```
 

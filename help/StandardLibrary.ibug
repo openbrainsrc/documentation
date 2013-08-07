@@ -1,6 +1,6 @@
 # Baysig Standard Library
 
-Here is the Baysig standard library. You can use the function in these
+Here is the Baysig standard library. You can use the functions in these
 files in your documents.
 
 ```
@@ -66,7 +66,7 @@ map f (Cons x xs) = Cons (f x) (map f xs)
 filter _ Nil = Nil
 filter p (Cons x xs) = 
    if p x then Cons x (filter p xs)
-      	  else (filter p xs)
+          else (filter p xs)
 -}
 
 
@@ -277,9 +277,9 @@ unPlotOpts (Plot os x) = os
 data Radian = Lines (List (Real,Real))
             | Points (List (Real,Real))
             | Bars (List (Real,Real))
-	    | Histogram (List Real)
-	    | Timeseries (Real -> Real) 
-	    | Options (List (String,String)) (List Radian)
+            | Histogram (List Real)
+            | Timeseries (Real -> Real) 
+            | Options (List (String,String)) (List Radian)
 
 --getT : Real? -> Real? -> (Real,Real)
 getT dt? tmax? = (dt,tmax)
@@ -297,7 +297,7 @@ data Never = Never (Prob Bool)
 data Mostly = Mostly (Prob Bool)
 data SamplerDensity = SamplerDensity (Prob Real) (Real -> Real) 
                     | SamplerMass (Prob Int) (Int -> Real)
-		    | SamplesSame (Prob Real) (Prob Real)
+                    | SamplesSame (Prob Real) (Prob Real)
 
 between lo hi x = x > lo && x < hi
 
@@ -537,7 +537,7 @@ nsig sig v
   = case observeSig sig of 
        (ObservedSignal dt t0 vpts) -> prob              
           ns ~ repeat (dim vpts) $ normal 0 v
-	  return $ pack dt t0 $ listToVec $ map (\(x,y)-> x+y) $ zip ns $ vecToList vpts
+          return $ pack dt t0 $ listToVec $ map (\(x,y)-> x+y) $ zip ns $ vecToList vpts
 
 
 quantile : Real -> Prob Real -> Real
