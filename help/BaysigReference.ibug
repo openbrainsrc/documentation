@@ -234,6 +234,7 @@ and enclosing them in square brackets: `[1,2,3]` and `["Hello",
 list can be constructed by `[]`.
 
 There are several functions in Baysig to operate on lists:
+
 | function name  | type       | description    | example  |
 |----------------|------------|----------------|----------|
 | `length`       | `List a -> Int` | length   | `length [1,2] => 2` | 
