@@ -472,7 +472,7 @@ Defining distributions in this way is a lot of fun (except for the
 gamma distribution, which is no fun at all).
 
 If we "ask" for a Boolean probability distribution, Baysig gives you
-the proportion that is True:
+the proportion that is True (based on a finite number of samples):
 
 ?> myBernoulli 0.3
 
@@ -529,8 +529,8 @@ of type `a`, each of which having 10 elements. For instance, `repeat
 | uniform           | `uniform`          | `lo : Real` `hi : Real`     | `Real`
 | improper uniform  | `improper_uniform` | none                    |  `Real`
 | improper uniform positive  | `improper_uniform_positive` | none   | `Real`
-| list choice       | oneOf | `xs : List a` | `a`
-| choice 1..n       | oneTo | `n : Int` | `Int` 
+| list choice       | `oneOf` | `xs : List a` | `a`
+| choice 1..n       | `oneTo` | `n : Int` | `Int` 
 | unit normal       | `unormal`    |  none | `Real`
 | normal            | `normal` | `mean : Real` `variance : Real` | `Real`
 | binomial          | `binomial` | `n : Int` `p : Real` | `Int`
