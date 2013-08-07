@@ -451,6 +451,11 @@ at least we can plot samples from them:
 
 ?> distPlot unit
 
+That may not look very uniform but these outputs are approximated at
+the latest possible point, i.e. when that data is shown to the user in
+the plot. In calculations and statistical inference, the `unit` really
+*is* uniform.
+
 One simple way to manipulate probability distributions is the function
 `fmap`, which applies a function to values drawn from the
 distribution. Thus the distribution `fmap (\x -> x+1.5) unit` yields
