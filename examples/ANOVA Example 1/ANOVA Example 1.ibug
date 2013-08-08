@@ -1,0 +1,182 @@
+*23 July 2013*
+
+This example is taken from Chapter 15 of *Statistical Computing: An Introduction to Data Analysis Using S-Plus* by Michael J. Crawley.  We'll look at the first part of the analysis, a one-way ANOVA of some plant growth data.  What we want to do is to compare the "traditional" and the Bayesian analayses, both in terms of how we set the analyses up, and in terms of how we analyse the results.
+
+
+## Data set
+
+We will work with a data set that gives plant growth rates as a function of plant genotype and light exposure ("photoperiod"), with a full factorial treatment experiment (i.e. all combinations of genotype and light exposure are considered).
+
+Here, we bring in the data set and display the first three entries to see what they look like.
+
+> gr = #Examples#"ANOVA Example 1"#growth
+
+> g1 = take 3 gr
+
+?> g1
+
+We're going to look just at the influence of the variations in photoperiod on the growth rates.
+
+
+## Standard analysis
+
+In the "standard" one-way ANOVA analysis, we calculate certain sums of squares and counts of degrees of freedom and lay them out in an "ANOVA table".  In the following, **SS** is the sum of squares value, **d.f.** the number of degrees of freedom, **MS** the mean sum of squares (i.e. the sum of squares divided by the number of degrees of freedom) and *F* is the "F-value", which is the mean sum of squares for the "treatment" (here the photoperiod) divided by the mean sum of squares for the "error" (i.e. variation that isn't explained by differences in the treatment).  Large values of *F* indicate significant treatment effects.
+
+|**Source**  |&nbsp;&nbsp;|**SS**&nbsp;&nbsp;&nbsp; |&nbsp;&nbsp;|**d.f.**|&nbsp;&nbsp;|     **MS**    |  *F* |
+|:-----------|-|------:|-|:------:|-|:-------------:|:----:|
+|Photoperiod | |  7.125| |    3   | |     2.375     | 1.462|
+|Error       | | 32.500| |   20   | | s<sup>2</sup> = 1.625 |      |
+|Total       | | 39.625| |   23   | |               |      |
+
+To decide whether the treatment effect sizes are significant, we compare our computed *F* to the "critical *F*-value", which is calculated based on the number of degrees of freedom and a significance level.  Here, we can calculate the critical *F*-value for a 95% significance level in R as: `qf(0.95, 3, 20) = 3.098` (we use R to do this because we don't include this kind of function in BayesHive: we don't need them, as you'll see below).
+
+In this case, our computed *F*-value is smaller than the critical value, which means that the effect sizes aren't big enough to reject the null hypothesis at this (95%) level.  The (implicit) null hypothesis for this type of test is that *all* of the effect sizes are zero.
+
+So, what does this analysis tell us?  In the usual jargon, "we cannot reject the one-way ANOVA null hypothesis at a significance level of 95%".  That means that according to this analysis, there's no evidence in our data for any significant difference in growth rates between the different photoperiods.  But what assumptions have we made?  Well, it's kind of hard to see.  There are *standard* assumptions built into the ANOVA approach, but they are *implicit*.  Nowhere in this analysis have we said anything about what assumptions we make about data independence, or error distributions or anything else.
+
+This is one of the great difficulties with conventional statistics, and is one of the things we think we can do much better with BayesHive.  Researchers very often perform standard statistical analyses and draw conclusions from the results, but only rarely do they carefully explore the "default assumptions" that apply to these analyses to ensure that they apply to their data.
+
+BayesHive takes a completely different approach.
+
+
+## Bayesian analysis
+
+**Note that, in the following, we are going to show a lot of the gritty details of defining Bayesian models and post-inference tests.  Our intention here is to make very explicit exactly what's going on.  In practice, when using BayesHive, the model definition will be generated automatically by the ANOVA model builder, and the standard hypothesis tests will be defined using a library function, rather than writing them out explicitly as we do here.  This is just for demonstration purposes, so don't be put off by the apparent complexity!**
+
+### Model construction and parameter estimation
+
+We set up our Bayesian analysis by defining a probability model for the dependence of the plant growth values on the photoperiod.  Writing such a model forces us to make all the assumptions that go into our modelling explicit &mdash; in the "traditional" approach, there are a similar set of assumptions in force, but these are implicit in the formulation of the "standard" ANOVA calculation.  We define a baseline level for the growth parameter that we call `alpha_growth` and for each level of the photoperiod we define an offset (i.e. `beta_short`, etc.).  The growth parameter is distributed normally with a mean value depending on which photoperiod value is appropriate, and with a variance that is common to all measurements.  (These assumptions are in fact similar to those implicit in the standard one-way ANOVA analysis.)
+
+We impose an identifiability condition on the `beta` parameters by requiring that the sum of the versions of the parameters used in the main model equation is zero.  (This condition is imposed by setting the value of one of the `beta` parameters to minus the sum of the sampled values of the other `beta` parameters.)  The reason for this is that if we had one independent `beta` parameter for each photoperiod level, we would have one too many degrees of freedom in our model: the `beta` parameters plus the mean `alpha_growth` value.
+
+Prior distributions are defined for the `alpha` and `beta` parameters as well as for the unexplained variance.  Here, we make the prior distribution for `alpha_growth` `improper_uniform_positive`, which restricts values to be positive, but imposes no other prior knowledge and we set the prior distributions for the `beta` parameters to `improper_uniform`, which imposes no prior knowledge on these parameters at all.
+
+> anova = prob
+>   alpha_growth ~ improper_uniform_positive
+>   beta_long ~ improper_uniform
+>   beta_short ~ improper_uniform
+>   beta_verylong ~ improper_uniform
+>   beta_veryshort = -(beta_long + beta_short + beta_verylong)
+>   variance ~ improper_uniform_positive
+>   repeat 24 $ prob
+>     photoperiod ~ any
+>     growth ~ normal (alpha_growth +
+>                      (photoperiod .==. "veryshort") * beta_veryshort +
+>                      (photoperiod .==. "short") * beta_short +
+>                      (photoperiod .==. "long") * beta_long +
+>                      (photoperiod .==. "verylong") * beta_verylong) variance
+>     return { growth => growth; photoperiod => photoperiod }
+
+(The `.==.` operator here is a BayesHive comparison operator that produces a *real* value from a comparison: one if the operands are equal, zero if the operands differ.  This is useful for this type of discrete level model.)
+
+This model is a *generative* model, i.e. it describes how to sample photoperiod and growth data under the assumptions imposed by our understanding of the experiment.  You can think of such a model as being a simulator for the experiment it represents, a simulator that makes clear in a very operational way what our assumptions really are.
+
+Given such a model, we can use BayesHive's `estimate` function to calculate the posterior distribution of the model parameters based on observed experimental data (we call `unround` here to convert our integer-valued growth data into real values):
+
+> par <* estimate anova (with gr { growth=> unround growth;
+>                                  photoperiod => photoperiod })
+
+The result of this calculation is the full joint posterior distribution of the model parameters.  We can view a summary of this distribution:
+
+?> par
+
+However, it is important to remember that (within the limitations imposed by the Markov chain Monte Carlo sampling process used to produce it), the value represented by `anovaGrowthPars` contains much more information than just this summary.
+
+### Hypothesis testing
+
+To illustrate this, we can directly answer the question that is of most interest in one-way ANOVA: what is the probability that there is any difference in effects between the different treatments in the model?  No difference in effects is precisely the null hypothesis of one-way ANOVA.
+
+#### One formulation of "the ANOVA question"
+
+We can pose a version of this question in the following form: since we know that the sum of the `beta` values is zero (imposed by our model), the strength of each individual "treatment effect" is simply given by the size of its `beta` parameter, and we can thus test whether one or more of our `beta` parameters is sufficiently far from zero.  This statement can then be translated directly into the following test:
+
+> h0tst = with par $
+>   let beta_veryshort = -(beta_short + beta_long + beta_verylong)
+>       eps = 2 * sqrt variance
+>       betas = [beta_veryshort, beta_short, beta_long, beta_verylong]
+>    in foldl or False $ map (\x -> abs x > eps) betas
+
+?> h0tst
+
+This result tells us that, given the assumptions explicitly encoded in our model and given the growth data we have, there is a less than 1% probability that any of the growth parameters for different photoperiods differs from the mean growth rate.  This means that there is a more than 99% probability that there is no difference in the effects for different treatments.
+
+#### Another formulation
+
+That's just one approach to this type of comparison.  What about if we ask about the probability that there is any difference in effect between any *pair* of photoperiod treatments?  It's not immediately obvious how to set that sort of question up in the framework of a standard ANOVA analysis, but a little bit of programming allows us to frame this test question quite easily:
+
+> takePairs Nil = Nil
+> takePairs (Cons _ Nil) = Nil
+> takePairs (Cons x xs) = append (map (\y -> (x,y)) xs) (takePairs xs)
+
+> anyDiff eps xs =
+>   let cmps = map (\(x,y) -> abs (x - y) > eps) $ takePairs xs
+>    in foldl or False cmps
+
+> h1tst = with par $
+>   let beta_veryshort = -(beta_short + beta_long + beta_verylong)
+>       eps = 2 * sqrt variance
+>       betas = [beta_veryshort, beta_short, beta_long, beta_verylong]
+>    in anyDiff eps betas
+
+Here, `takePairs` and `anyDiff` are helper functions that build an expression to perform the pairwise comparison.
+
+?> h1tst
+
+As you would expect, since this test is less rigorous than the earlier test, the probability of the sampled parameters meeting the test condition is a little higher.
+
+#### ROPEs
+
+There is a very important difference between the analysis we do here and the analysis in the "standard" ANOVA analysis.  In the standard analysis, we have to specify a significance level, which is *not* a probability that our null hypothesis is true (this is a common error made in many papers!).  In the Bayesian analysis, we deal *directly* with posterior probabilities.  This makes interpretation of our models much easier.
+
+Here's another question we can answer quite easily: since we don't really want to set an arbitrary dividing line between "different" and "not different" (such as our two standard deviation condition), can we look at how the probability of any of the treatment effects being "different" varies as we vary what we mean by "different"?  This is sort of a backwards way of defining a "Region Of Practical Equivalence" or ROPE, in the sense that a ROPE is normally defined in terms of a practical effect size that we think, because of domain knowledge about our problem, is big enough to care about, while here, we will attempt to find a sort of "minimum distinguishable difference" from our data assuming our model.
+
+To do this, we start with this function that calculates the probability of "difference" given a factor `n` that says "different is `n` standard deviations":
+
+> tst n = with par $
+>   let beta_veryshort = -(beta_short + beta_long + beta_verylong)
+>       eps = n * sqrt variance
+>       betas = [beta_veryshort, beta_short, beta_long, beta_verylong]
+>    in foldl or False $ map (\x -> abs x > eps) betas
+
+Here's what the results look like if we look over a reasonable range of definitions of "different":
+
+> ns = linspace 0.01 4 20
+> ps = map tst ns
+
+?> axisLabels "Difference in units of standard deviation"
+?>            "Probability of difference" $
+?>            pcurve $ zip ns ps
+
+We can see that as we increase the tolerance of what it means to be "different", the probability of seeing some difference in our data drops off rapidly.  We get a clear picture of how much "difference" the evidence provided by our data really supports (rather little in this case).
+
+This type of visualisation makes it very clear what's going on with our model and our data.
+
+## Some conclusions
+
+In our Bayesian analysis, we've come to the same conclusion that we came to from the "standard" analysis, i.e. that there is no practical detectable difference in the growth rates between the different photoperiod treatments.  The difference between the two analyses lies in four main factors:
+
+1. the amount of information we have been able to extract from our posterior parameter distribution;
+2. the flexibility with which we can change our modelling assumptions if necessary;
+3. the ease with which we can pose alternative questions in our post inference analysis;
+4. the ease with which we can interpret the results of the tests that we perform &mdash; the answers we get from our tests are empirical *probabilities* and they really can be interpreted that way (compare with the difficulty of interpretation of *p*-values!).
+
+Now, it is possible to come away from this analysis with the impression that Bayesian methods are a lot of work.  With BayesHive, that's really not true.  All of the Baysig code in the section "Model construction and parameter estimation" above is generated from a point-and-click model builder interface: you select your data set, the variables you want to model, the prior distributions to use, and BayesHive generates all the code you need.  The hypothesis tests used above are not yet produced directly by the model builder, but we are developing a suite of such tests to cover most standard statistical tests, and in the future this code will also be automatically generated.  With this automatically generated code as a guideline, it becomes very easy to explore alternative hypotheses, to pose non-standard questions and to do what statistics is really about: extracting information from our data.
+
+*In this example, we have looked only at one-way ANOVA.  In a later example, we'll use two-way ANOVA to analyse the joint variability explained by the photoperiod and genotype variation in our data.  This turns out to be no harder to do than the simple one-way analysis presented here...*
+
+
+ <hr>
+
+
+## Appendix: Bayesian "health checks"
+
+Before we can do an analysis of our Bayesian results like the one presented above, we need to do some very important checks on the results of the Markov chain Monte Carlo process used to perform the Bayesian parameter inference.  This is a big and complicated subject, but for our purposes, the first thing we should do is look at "chain plots" for each of the model parameters.  These are plots that show a series of samples from the Markov chain for each parameter.  If the Markov chain is "healthy" (in the sense that it is a reasonable sample from the posterior distribution for the parameter), then the chain will be "well mixed".  In terms of the chain plots, this basically just means that there is no discernable structure in the plot &mdash; the points in the plot should look "random" and uncorrelated.
+
+The following panels show the chain plots for each of our parameters.  The plots show a healthy well-mixed chain so we can proceed with an analysis of the posterior parameter distribution.  (Readers who know about MCMC inference will realise that this is a horrible simplification of the situation.  Analysis of MCMC convergence is a much bigger topic than we can cover here.  There will be other BayesHive examples to cover this important topic in detail.)
+
+> tl = axisLabels "iter" "alpha_growth" $ chainPlot (par<#>alpha_growth)
+> tr = axisLabels "iter" "beta_short" $ chainPlot (par<#>beta_short)
+> bl = axisLabels "iter" "beta_long" $ chainPlot (par<#>beta_long)
+> br = axisLabels "iter" "beta_verylong" $ chainPlot (par<#>beta_verylong)
+
+?> PlotColumn [] [PlotRow [] [tl, tr], PlotRow [] [bl, br]]

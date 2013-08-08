@@ -1,0 +1,150 @@
+This is a classic example in Bayesian data analysis, presented for example in [Data Analysis: A Bayesian Tutorial](http://www.amazon.com/Data-Analysis-Bayesian-Tutorial-ebook/dp/B001E5II36) by Sivia & Skilling.
+
+
+### Problem statement
+
+Suppose we have a straight coastline with a lighthouse lying a perpendicular distance $\beta$ from the shore, at position $\alpha$ along the shore.  The lighthouse rotates at a constant rate, emitting short flashes at random intervals (so at random angles).  The locations along the shore of $N$ flashes are measured using photodetectors; call these positions $\{x_k\}$.  Can we infer from these data the position of the lighthouse?
+
+
+### Initial analysis
+
+First, we need to relate the measured position of each flash, $x_k$, to the angle of the lighthouse at the time of the flash, $\theta_k$.  Measuring angles counterclockwise from the perpendicular from the lighthouse to the shoreline, some simple geometry gives us that
+
+$$\beta \tan \theta_k = x_k - \alpha.$$
+
+Next, we know that, in order for the flashes to be visible at the shore, the angles $\theta_k$ must lie in the interval $[-\pi/2,\pi/2]$.  We have no *a priori* knowledge of the distribution of the flashes, so we take the distribution of angles given the position of the lighthouse to be
+
+$$p(\theta_k | \alpha, \beta, I) = \frac{1}{\pi}$$
+
+where here $I$ represents "background" information.
+
+From this distribution and the relationship between $x_k$ and $\theta_k$, we can derive the distribution $p(x_k|\alpha, \beta, I)$ by a change of variables:
+
+$$p(x_k|\alpha,\beta,I) = \frac{d \theta_k}{d x_k} p(\theta_k|\alpha,\beta,I)$$
+
+or, computing the relevant derivative,
+
+$$p(x_k|\alpha,\beta,I) = \frac{\beta}{\pi[\beta^2 + (x_k-\alpha)^2]}.$$
+
+
+### Sampling from a Cauchy distribution
+
+The distribution $p(x_k|\alpha,\beta,I)$ is a Cauchy distribution, $\mathcal{C}(\alpha,\beta)$, from which we will need to be able to sample.  Although the Cauchy distribution is not built into Baysig by default, it is easy to implement such a distribution ourselves.  In fact, in our situation, it's almost trivial.  We know that the angle $\theta_k$ is distributed as $\mathcal{U}(-\pi/2, \pi/2)$ and we know the relationship between $\theta_k$ and $x_k$, so we can sample from $x_k$ by:
+
+> cauchy α β = prob
+>   ntheta ~ unit
+>   return $ α + β * tan (pi * ntheta)
+
+Here, we've sampled from $\mathcal{U}(0,1)$ using `unit` rather than from $\mathcal{U}(-\pi/2,\pi/2)$, taking advantage of the properties of the tangent function.  Here's a plot of some samples from the $\mathcal{C}(0,1)$ distribution (because the Cauchy distribution has very heavy tails we have to filter the samples to produce a sensible histogram...):
+
+>> cs <* sample (repeat 2000 (cauchy 0 1))
+?> histogram (filter (between (-10) 10) cs)
+
+In order to use our Cauchy distribution for MCMC inference, we also need to define a function giving the logarithm of the PDF -- this has to be called `cauchyLogPdf` so that the Baysig inference engine can pick it up:
+
+> cauchyLogPdf α β x = log β - log pi - log (β^2 + (x-α)^2)
+
+
+### Probability model for fixed $\alpha$ and $\beta$
+
+Before we proceed to parameter estimation, we need a way of generating test data from a "true" distribution, i.e. a situation where we know the values of the parameters $\alpha$ and $\beta$.  We can express the distribution $p(\{x_k\}|\alpha,\beta,I)$ in Baysig as
+
+> truth n α β = repeat n (cauchy α β)
+
+We will generate ground truth data from this distribution for $\alpha=1000$, $\beta=2000$.
+
+>> xstrue <* sample (truth 1000 1000 2000)
+
+
+### Inference for fixed $\beta$
+
+Now, let's assume that we know the distance of the lighthouse from the shore and want to use the measurements $\{x_k\}$ to infer only the position $\alpha$.  We thus want to evaluate the probability distribution $p(\alpha|\{x_k\},\beta,I)$.  Applying Bayes' Theorem, we have that
+
+$$p(\alpha|\{x_k\},\beta,I) \propto p(\{x_k\}|\alpha,\beta,I) \; p(\alpha|\beta,I).$$
+
+We'll take the prior distribution for the position $\alpha$, $p(\alpha|\beta,I)$ to be uniform across a given range: $\alpha \sim \mathcal{U}[\alpha_{\mathrm{min}},\alpha_{\mathrm{max}}]$.
+
+> α_min = -20000
+> α_max = 20000
+> α_prior = uniform α_min α_max
+
+Assuming that the measurements $\{x_k\}$ are independent, the likelihood $p(\{x_k\}|\alpha,\beta,I)$ can be factorised as
+
+$$p(\{x_k\}|\alpha,\beta,I) = \prod_{k=1}^N p(x_k|\alpha,\beta,I)$$
+
+where we have the likelihood for an individual measurement from the change of variables calculation above.
+
+The Baysig representation of the distribution of the whole measured dataset $\{x_k\}$ is thus
+
+> model1 n β = prob
+>   α ~ α_prior
+>   repeat n (cauchy α β)
+
+We can now sample from this model.  Let's say that the lighthouse is 2000 metres offshore, so $\beta = 2000$, and we take 1000 measurements.  Then, filtering the samples as before, we get the following histogram for our $\{x_k\}$:
+
+>> xs1 <* sample (model1 1000 2000)
+?> histogram (filter (between (-20000) 20000) xs1)
+
+Here, the samples are for our fixed value of $\beta$, and for a *random* value of $\alpha$, but they are all for the *same* value of $\alpha$.
+
+Now, we want to estimate the (unknown) value of $\alpha$ from a set of measurements using this model.  We use the "true" values from above where we know the parameter values ($\alpha=1000$) so that we can get some idea of how well the method works.
+
+To do this, we use Baysig's `estimate` function, passing our probability model (`model1 1000 2000`: $N=1000$ measurements with $\beta=2000$ fixed) and the measurements `xstrue`:
+
+> regr1 <* estimate (model1 1000 2000) xstrue
+
+The results of this initial experiment are relatively encouraging:
+
+?> regr1
+
+We get an estimate of $\alpha$ to within about 10% (the exact value depends on the random path taken by the inference algorithm).  This is pretty reasonable, given the spread of observations shown in our test histograms above.
+
+
+### Simultaneous estimation of $\alpha$ and $\beta$
+
+Now we lift the restriction that we know $\beta$.  We thus want to evaluate the probability distribution $p(\alpha,\beta|\{x_k\},I)$.  Applying Bayes' Theorem, we have that
+
+$$p(\alpha,\beta|\{x_k\},I) \propto p(\{x_k\}|\alpha,\beta,I) \; p(\alpha,\beta|I).$$
+
+Assuming that the priors for $\alpha$ and $\beta$ are independent, we can factor $p(\alpha,\beta|I)$ as
+
+$$p(\alpha,\beta|I) = p(\alpha|I) p(\beta|I).$$
+
+We'll use the same $\mathcal{U}[-20000,20000]$ prior for $\alpha$ as before, and we'll assume that we know that the lighthouse is within 5000 metres of the coast, but know nothing else about $\beta$.  A suitable prior is then
+
+> β_min = 0
+> β_max = 5000
+> β_prior = uniform β_min β_max
+
+Now the distribution of the measurements is represented by
+
+> model2 n = prob
+>   α ~ α_prior
+>   β ~ β_prior
+>   repeat n (cauchy α β)
+
+Here, we draw values for $\alpha$ and $\beta$ from the priors we have selected, then generate the $\{x_k\}$ values from the appropriate Cauchy distribution.
+
+We can do inference on this model as for the simpler, fixed $\beta$ model:
+
+> regr2 <* estimate (model2 1000) xstrue
+
+and the results look reasonable
+
+?> regr2
+
+There is more that we can do with the output from `estimate` though.  What we have shown so far isn't much more than we might get from a conventional maximum likelihood estimate of the lighthouse position: a "central" value and some information about the uncertainty in our parameters.  However, in Baysig, the value returned by `estimate` is itself a probability distribution.
+
+We can use this value to do a variety of things.  For example, we can plot the marginal distribution of the parameter $\beta$:
+
+?> distPlot (with regr2 β)
+
+or we can look at the joint distribution of the parameters $\alpha$ and $\beta$ by sampling from the inferred parameter distribution:
+
+> scatter <* sample (repeat 2000 $ with regr2 (α, β))
+
+?> scatterPlot scatter
+
+This sort of scatter plot can give us an idea of whether there is a relationship between the uncertainties of our parameters $\alpha$ and $\beta$.
+
+There's much more that one can do even with simple examples like this one.  We'll explore some of these possibilities in other articles.

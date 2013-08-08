@@ -1,0 +1,226 @@
+In this example, we're going to look at one of the most common and simplest statistical tasks: univariate linear regression.  We'll create some test data that follows the "standard assumptions" of the usual least squares fitting model and compare the results from a Bayesian and a "standard" analysis, then we'll look at what happens if our data don't follow the standard assumptions.
+
+
+## Standard assumptions model
+
+The "standard" assumptions for applying a linear regression model between a predictor variable $x$ and an outcome variable $y$ are that the values $x_i$ and $y_i$ are related by
+
+$$y_i = a + b x_i + \epsilon_i, \qquad \epsilon_i \sim \mathcal{N}(0, \sigma^2)$$
+
+Here, the error values $\epsilon_i$ are independent draws from the same zero-mean normal distribution, with variance $\sigma^2$.
+
+We can code this model in Baysig as
+
+> standard_model (minx, maxx) a b sigma = prob
+>   x ~ uniform minx maxx
+>   y ~ normal (a + b * x) (sigma^2)
+>   return { x => x; y => y }
+
+We can then generate some test data from this model by doing
+
+> a_test = 42.3
+> b_test = 6.4
+> sigma_test = 12.2
+> xrange = (0, 20)
+> stddat <* sample $ repeat 50 (standard_model xrange a_test b_test sigma_test)
+
+which gives us data that looks like this:
+
+?> scatterPlot $ with stddat (x,y)
+
+
+### Bayesian linear regression
+
+A Bayesian model for the regression parameters $a$, $b$ and $\sigma$ looks like this
+
+> bayesregression = prob
+>   a ~ a_prior
+>   b ~ b_prior
+>   sigma ~ sigma_prior
+>   repeat 50 $ prob
+>     x ~ any
+>     y ~ normal (a + b * x) (sigma^2)
+>     return { x => x; y => y }
+
+Note here that we generate values for $x$ *at random*, then calculate values for $y$ from these.  One might think that a simpler model for this type of regression would be something along the lines of:
+
+> bayesregression2 xs = prob
+>   a ~ a_prior
+>   b ~ b_prior
+>   sigma ~ sigma_prior
+>   single i = normal (a + b * (xs ! i)) (sigma^2)
+>   for 0 (dim xs - 1) single
+
+where we generate $y$ values *given* the $x$ values, assuming no uncertainty in the $x$ values, taken these as given, and so representing the probability distribution $P(Y|X)$.  However, we want to be able to pass our model to the `estimate` function below, and there are a few restrictions on the structure of models that can be used with `estimate` (these are restrictions that will be lifted or relaxed as Baysig is developed further).  In particular, it is not possible to pass *data* into a model as an argument -- in this case the argument `xs` is data.  At the moment, all data must be passed into the model via `estimate`, so we must use the first model defined above.  (This is something like what is often called an "errors in variables" model.)
+
+Next, we define broad prior distributions for the parameters as
+
+> a_prior = normal 40 40
+> b_prior = normal 6 20
+C> sigma_prior = gamma 1 10
+> sigma_prior = improper_uniform_positive
+
+We can now estimate the regression parameters based on our test data:
+
+> bayes1 <* estimate bayesregression stddat
+
+
+### The standard formulae
+
+To determine the standard maximum likelihood estimate of the regression slope $b$ and intercept $a$, we need to calculate the following sums of squares:
+
+$$SST = \sum y^2 - \frac{1}{n} \left( \sum y \right)^2$$
+
+$$SSX = \sum x^2 - \frac{1}{n} \left( \sum x \right)^2$$
+
+$$SSXY = \sum xy - \frac{1}{n} \left( \sum x \sum y \right)$$
+
+given by the following Baysig expressions (along with the means of $x$ and $y$, which we denote by $\bar{x}$ and $\bar{y}$):
+
+> xs = with stddat x
+> ys = with stddat y
+
+> sst = sum (map (\y->y^2) ys) - (sum ys)^2 / (length ys)
+> ssx = sum (map (\x->x^2) xs) - (sum xs)^2 / (length xs)
+> ssxy = sum (map (\(x,y)->x*y) (zip xs ys)) - (sum xs) * (sum ys) / (length ys)
+> xbar = sum xs / length xs
+> ybar = sum ys / length ys
+
+Then, $b = SSXY / SSX$, and $a = \bar{y} - b \bar{x}$:
+
+> b_mle = ssxy / ssx
+> a_mle = ybar - b_mle * xbar
+
+We can calculate the standard errors in these quantities from the regression sum of squares $SSR$, the error sum of squares $SSE$ and the error variance $s^2$, as
+
+$$SSR = b_{\mathrm{MLE}} SSXY$$
+
+$$SSE = SST - SSR$$
+
+$$s^2 = \frac{SSE}{n - 2}$$
+
+$$SE_b = \sqrt{\frac{s^2}{SSX}}$$
+
+$$SE_a = \sqrt{\frac{s^2 \sum x^2}{n SSX}}$$
+
+or, in Baysig
+
+> ssr_mle = b_mle * ssxy
+> sse_mle = sst - ssr_mle
+> s2_mle = sse_mle / (length xs - 2)
+> se_b_mle = sqrt (s2_mle / ssx)
+> sx2 = sum (map (\x->x^2) xs)
+> se_a_mle = sqrt ((s2_mle * sx2) / (length xs * ssx))
+
+
+### Comparison
+
+Here are the original parameter values we used to generate our test data:
+
+?> a_test
+
+?> b_test
+
+?> sigma_test
+
+Here are the results from our Bayesian regression analysis:
+
+?> bayes1
+
+And here are the results from the "standard" analysis:
+
+?> a_mle
+
+?> se_a_mle
+
+?> b_mle
+
+?> se_b_mle
+
+In this case, the Bayesian results and the "standard" results are pretty close.  However, the Bayesian results carry more information.  For example, we can look at the posterior distribution of values for the slope $b$:
+
+?> distPlot $ with bayes1 b
+
+In this case, the distribution looks more or less Gaussian, but in more complicated cases, the shape of the posterior distribution for a parameter can tell us more than just the MLE value and its standard error.
+
+
+## Lifting the standard assumptions
+
+Above, we generated data based on some "standard" assumptions.  Let's see what happens if we lift one of those assumptions.  Our "standard" model used fixed variance for the dependent variable sampling.  Let's construct a heteroskedastic model where the variance depends on $x$:
+
+> het_model (minx, maxx) a b sigma = prob
+>   x ~ uniform minx maxx
+>   y ~ normal (a + b * x) (x * sigma^2)
+>   return { x => x; y => y }
+
+Here, the variance of $y$ is proportional to $x$.  We can generate test data as before:
+
+> hetdat <* sample $ repeat 50 (het_model xrange a_test b_test sigma_test)
+
+which gives us data that looks like this:
+
+?> scatterPlot $ with hetdat (x,y)
+
+### Bayesian analysis
+
+First, let's try using the same simple fixed variance model as before:
+
+> hbayes1 <* estimate bayesregression hetdat
+
+We might not expect this model to perform very well.  If we know that the process generating our data is heteroskedastic, and we suspect (from looking at the data) that that variance in $y$ is proportional to $x$, we can construct a model that reflects this belief:
+
+> hbayesregression = prob
+>   a ~ a_prior
+>   b ~ b_prior
+>   sigma ~ sigma_prior
+>   repeat 50 $ prob
+>     x ~ any
+>     y ~ normal (a + b * x) (x * sigma^2)
+>     return { x => x; y => y }
+
+and we can now try to estimate the parameters of this model from the data:
+
+> hbayes2 <* estimate hbayesregression hetdat
+
+>> hxs = with hetdat x
+>> hys = with hetdat y
+>> hsst = sum (map (\y->y^2) hys) - (sum hys)^2 / (length hys)
+>> hssx = sum (map (\x->x^2) hxs) - (sum hxs)^2 / (length hxs)
+>> hssxy = sum (map (\(x,y)->x*y) (zip hxs hys)) - (sum hxs) * (sum hys) / (length hys)
+>> hxbar = sum hxs / length hxs
+>> hybar = sum hys / length hys
+>> hb_mle = hssxy / hssx
+>> ha_mle = hybar - hb_mle * hxbar
+>> hssr_mle = hb_mle * hssxy
+>> hsse_mle = hsst - hssr_mle
+>> hs2_mle = hsse_mle / (length hxs - 2)
+>> hse_b_mle = sqrt (hs2_mle / hssx)
+>> hsx2 = sum (map (\x->x^2) hxs)
+>> hse_a_mle = sqrt ((hs2_mle * hsx2) / (length hxs * hssx))
+
+
+### Comparison
+
+Here are the results from the fixed variance Bayesian model:
+
+?> hbayes1
+
+from the heteroskedastic Bayesian model:
+
+?> hbayes2
+
+and the results from the "standard" analysis:
+
+?> ha_mle
+
+?> hse_a_mle
+
+?> hb_mle
+
+?> hse_b_mle
+
+Here, the heteroskedastic Bayesian model does a noticeably better job at determining the model parameters, as well as providing us with information about the joint distribution of the regression slope and offset that aren't available from the MLE estimates.  Here is a plot of the joint distribution of slope (X-axis) and offset (Y-axis) from the heteroskedastic model:
+
+>> scatter <* sample (repeat 10000 $ with hbayes2 (b, a))
+
+?> axisLabels "Slope" "Offset" $ style [("fill-opacity","0.1")] $ scatterPlot scatter

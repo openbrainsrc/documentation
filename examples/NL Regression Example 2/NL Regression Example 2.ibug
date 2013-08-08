@@ -1,0 +1,121 @@
+In this example, we're going to take another look at nonlinear regression modelling.  In the earlier example of modelling deer jaw size with age, we could have used linear regression &mdash; our exponential model $y = a - b e^{-cx}$ could have been transformed to a linear model by taking logs of both sides.  Here, we'll look at a situation where we can't linearise and there is no alternative to fitting a nonlinear model. We will also use details of the posterior parameter distribution and chain mixing plots to diagnose a non-identifiability problem in a variant model.  (This example is taken from Chapter 23 of *Statistical Computing: An Introduction to Data Analysis Using S-Plus* by Michael J. Crawley.)
+
+
+## Data
+
+The data we're going to use records fish population counts as a function of time.  Here, we plot the  data with both points and lines to give some idea of the temporal evolution.  The data shows an increase in population from zero at the beginning of the data set to a maximum, followed by a declines back towards low population levels.
+
+>> fishery = #Examples#"NL Regression Example 2"#fishery
+
+?>> axisLabels "Time" "Population count" $
+?>>   over [style [("stroke", "blue")] $ linePlot $ with fishery (xv,yv),
+?>>         style [("fill", "blue"), ("marker-size", "64")] $ scatterPlot $ with fishery (xv,yv)]
+
+
+## Model 1
+
+A standard model for fitting this type of data is the *Ricker model*, $y = a x e^{-bx}$.  Assuming Gaussian errors and taking uniform positive priors for $a$ and $b$, we can express this model in Baysig as:
+
+> ricker = prob
+>   a ~ gamma 1 100
+>   b ~ gamma 1 100
+>   variance ~ gamma 1 20
+>   repeat 20 $ prob
+>     xv ~ any
+>     yv ~ normal (a * xv * exp(-b * xv)) variance
+>     return { xv => xv; yv => yv }
+
+The model parameters can be estimated from the data:
+
+> parRicker <* estimate ricker fishery
+
+giving:
+
+?> parRicker
+
+### Diagnostics
+
+Chain plots for the parameters $a$, $b$ and the variance indicate good mixing:
+
+>> amc = axisLabels "iter" "a" $ chainPlot (parRicker<#>a)
+>> bmc = axisLabels "iter" "b" $ chainPlot (parRicker<#>b)
+>> vmc = axisLabels "iter" "variance" $ chainPlot (parRicker<#>variance)
+?>> PlotStack [] [("a", amc), ("b", bmc), ("variance", vmc)]
+
+### Results
+
+We can look at distribution plots for the parameters $a$ and $b$ and the error variance:
+
+>> adist = axisLabels "a" "density" $ distPlot (parRicker<#>a)
+>> bdist = axisLabels "b" "density" $ distPlot (parRicker<#>b)
+>> vdist = axisLabels "variance" "density" $ distPlot (parRicker<#>variance)
+?>> PlotStack [] [("a", adist), ("b", bdist), ("variance", vdist)]
+
+and we can compare realisations of the model to the original data.  This type of plot is particularly useful for getting an idea of whether the model does a reasonable job of representing the data, and the range of possible model realisations that are implied by the joint distribution of model parameters returned by `estimate`:
+
+?>> axisLabels "Time" "Population count" $ over
+?>>    [plines $ with parRicker $ with fishery (xv, a * xv * exp (-b * xv)),
+?>>     scatterPlot $ map (\{..} -> (xv, yv)) fishery]
+
+
+## Model 2
+
+There is not much of a strong *a priori* reason for choosing the Ricker model, and we can consider a different model.  Perhaps the three parameter model
+
+$$y = \frac{ax}{(1 + cx)^b}$$
+
+would give a better fit?  We can try this in Baysig, again assuming Gaussian errors.  Here though, we need to be slightly careful about the prior distributions that we specify for the model parameters.  Using $\mathcal{U}(0, \infty)$ distributions *does not work here* because it is possible for very large values of parameters $a$ and $b$ to "balance out".  We need to constrain the parameters to have values that are more in the reasonable range of what we expect, given the magnitudes of the data values.  (This degenerate behaviour can also be a sign of non-identifiability problems in models, and we'll investigate the possibility below.)  The approach that we apply here is simply to make use of our prior knowledge about the parameters and to specify prior distributions that make smaller parameter values more likely &mdash; here we use a $\mathcal{G}a(1, 10)$ distribution for each $a$ and $c$ and a $\mathcal{U}(1, 50)$ distribution for $b$:
+
+> three = prob
+>   a ~ gamma 1 10
+>   b ~ uniform 1 50
+>   c ~ gamma 1 10
+>   variance ~ gamma 1 20
+>   repeat 20 $ prob
+>     xv ~ any
+>     yv ~ normal (a * xv / (1 + c * xv)^b) variance
+>     return { xv => xv; yv => yv }
+
+Estimating the model parameters from the data with this setup gives apparently reasonable values for $a$, $b$ and $c$:
+
+> parThree <* estimate three fishery
+
+?> parThree
+
+### Diagnostics
+
+Something is clearly still not quite right with the estimation of this model, as can be seen from the MCMC chain plots.  None of the chains are particularly well mixed.
+
+>> a3mc = axisLabels "iter" "a" $ chainPlot (parThree<#>a)
+>> b3mc = axisLabels "iter" "b" $ chainPlot (parThree<#>b)
+>> c3mc = axisLabels "iter" "c" $ chainPlot (parThree<#>c)
+>> v3mc = axisLabels "iter" "variance" $ chainPlot (parThree<#>variance)
+?>> PlotStack [] [("a", a3mc), ("b", b3mc), ("c", c3mc), ("variance", v3mc)]
+
+### Results
+
+As before, we can look at distribution plots for the posterior parameter distribution coming out of the estimation process.  Of particular interest here is the distribution of $b$: it appears that, from the data that we have, we can hardly constrain the value of $b$ at all.  Perhaps this model isn't such a great choice for this data...
+
+>> a3dist = axisLabels "a" "density" $ distPlot (parThree<#>a)
+>> b3dist = axisLabels "b" "density" $ distPlot (parThree<#>b)
+>> c3dist = axisLabels "c" "density" $ distPlot (parThree<#>c)
+>> v3dist = axisLabels "variance" "density" $ distPlot (parThree<#>variance)
+?>> PlotStack [] [("a", a3dist), ("b", b3dist), ("c", c3dist), ("variance", v3dist)]
+
+We can look at comparisons between model realisations and the original data.  This model doesn't do a noticeably worse job than the Ricker model, but the MCMC chain plots should make us a little suspicious:
+
+?>> axisLabels "Time" "Population count" $ over
+?>>    [plines $ with parThree $ with fishery (xv, a * xv / (1 + c * xv)^b),
+?>>     scatterPlot $ map (\{..} -> (xv, yv)) fishery]
+
+We can try to diagnose what's going by looking at the posterior parameter distribution in more detail.  Here, we show scatter plots of realisations from the joint posterior distribution of $a$ , $b$ and $c$, showing two-dimensional slices through this three-dimensional distribution.
+
+>> sc3ab <* sample (repeat 2000 $ with parThree (a, b))
+>> sc3ac <* sample (repeat 2000 $ with parThree (a, c))
+>> sc3bc <* sample (repeat 2000 $ with parThree (b, c))
+>> sc3abp = axisLabels "a" "b" $ style [("fill-opacity","0.1")] $ scatterPlot sc3ab
+>> sc3acp = axisLabels "a" "c" $ style [("fill-opacity","0.1")] $ scatterPlot sc3ac
+>> sc3bcp = axisLabels "b" "c" $ style [("fill-opacity","0.1")] $ scatterPlot sc3bc
+?>> PlotStack [] [("a vs. b", sc3abp), ("a vs. c", sc3acp), ("b vs. c", sc3bcp)]
+
+If we look at the "b vs. c" panel, it's immediately clear that there is a non-identifiability problem in the model &mdash; given a value for $b$, we can predict a value for $c$ almost deterministically (and vice versa).  This indicates that whatever values for one of these parameters are investigated by the MCMC chain, the "best" value of the other of the two parameters is strongly constrained.  This explains the mixing problems with the chains seen above, and indicates that this is not a good model to use for this data.  It is possible that with more data, especially to constrain the power law drop-off for later times, this model might be usable, but our results here show that this isn't the case for this data set.
