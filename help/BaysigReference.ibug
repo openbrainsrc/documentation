@@ -650,7 +650,9 @@ process at a timepoint 1.0 (dimensionless)
 
 ?> wienersAtOne
 
-This prints the mean plus/minus the standard deviation of the distribution.  
+This prints the mean plus/minus the standard deviation of the
+distribution based on a numerical approximation (the theoretical value
+should be mean 0, standard deviation 1).
 
 ### Defining stochastic differential equations
 
