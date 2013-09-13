@@ -568,11 +568,10 @@ value for the function by assigning a value to the varialbe which has
 "_0" appended to the function name. For instance, to solve the
 differential equation
 
-$$
-y(0) = 1
+$$y(0) = 1$$
 
-\frac{dy}{dx} = y + sin(t)
-$$
+$$\frac{dy}{dx} = y + sin(t)$$
+
 
 would be in Baysig:
 
