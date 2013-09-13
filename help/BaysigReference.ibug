@@ -568,17 +568,16 @@ value for the function by assigning a value to the varialbe which has
 "_0" appended to the function name. For instance, to solve the
 differential equation
 
-$$y(0) = 1$$
-
 $$\frac{dy}{dx} = y + sin(t)$$
 
+$$y(0) = 1$$
 
-would be in Baysig:
+would be written in Baysig:
 
 ```
 y_0 = 1
 
-D y t = y t + sin(t)
+D y t = y t + sin t
 ```
 
 Here, we used the shorthand form of function that puts the function
@@ -591,7 +590,7 @@ D y = \t-> y t + sin t
 another differential equation with a simple right hand sinde might be defined as:
 
 ```
-D y = sin
+D f = sin
 ```
 
 Baysig does not currently support higher-order differential equations. 
@@ -617,8 +616,9 @@ ysig = let dt = 0.01
 ```
 
 The *result* of defining a differential equation is a function that
-can be evaluated at any timepoint up until tmax. If it is evaluated
-beyond this timepoint, the program may crash.
+can be evaluated at any timepoint with standatd function application
+(e.g. `y 0.5`) up until `tmax`. If it is evaluated beyond this
+timepoint, the program may crash.
 
 ## Stochastic differential equations
 
