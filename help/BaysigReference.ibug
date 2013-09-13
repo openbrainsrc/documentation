@@ -560,13 +560,14 @@ TODO: sample
 
 ## Differential equations
 
-Baysig has a special pattern that allows the introduction of
-*differential equations*. By adding a `D` in front a function
-definition, you are telling Baysig that the right-hand side defines
-the derivative of the function body. You also need to give an initial
-value for the function by assigning a value to the varialbe which has
-"_0" appended to the function name. For instance, to solve the
-differential equation
+Baysig has a special pattern that allows the introduction of [ordinary
+differential
+equations](http://en.wikipedia.org/wiki/Ordinary_differential_equation). By
+adding a `D` in front a function definition, you are telling Baysig
+that the right-hand side defines the derivative of the function
+body. You also need to give an initial value for the function by
+assigning a value to the varialbe which has "_0" appended to the
+function name. For instance, to solve the differential equation
 
 $$\frac{dy}{dx} = y + sin(t)$$
 
@@ -621,6 +622,12 @@ can be evaluated at any timepoint with standatd function application
 timepoint, the program may crash.
 
 ## Stochastic differential equations
+
+Baysig also supports [stochastic differential
+equations](http://en.wikipedia.org/wiki/Stochastic_differential_equation)
+(SDEs). These are introduced by drawing a sample from the wiener
+process distribution, defining an initial condition and then
+introducing the SDE itself.
 
 wiener dist
 
