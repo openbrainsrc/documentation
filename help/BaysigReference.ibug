@@ -1,5 +1,7 @@
 # Baysig: reference manual
 
+[[TOC]]
+
 Baysig is a modern statistical programming language combining
 functional programming with Bayesian statistical inference in the
 style of WinBUGS and related modeling languages.  To users of
@@ -523,7 +525,7 @@ Four things are happening in this code snippet:
 *Statisticians* will recognize the "prob/~" notation as being very
 similar to the hierarchical statistical notation, but a bit more
 formal and less ambiguous. *Functional programmers* will recognize
-this the construction of a *monad*.
+this as the construction of a *monad*.
   
 This notation also allows us to build some simple utility functions to
 help build more complex probability distributions. The function
@@ -558,11 +560,66 @@ TODO: sample
 
 ## Differential equations
 
-D pattern
+Baysig has a special pattern that allows the introduction of
+*differential equations*. By adding a `D` in front a function
+definition, you are telling Baysig that the right-hand side defines
+the derivative of the function body. You also need to give an initial
+value for the function by assigning a value to the varialbe which has
+"_0" appended to the function name. For instance, to solve the
+differential equation
 
-_0 for initial conditions
+$$
+y(0) = 1
 
-output is function
+\frac{dy}{dx} = y + sin(t)
+$$
+
+would be in Baysig:
+
+```
+y_0 = 1
+
+D y t = y t + sin(t)
+```
+
+Here, we used the shorthand form of function that puts the function
+argument on the left hand side. The following are also valid definitions of `y`:
+
+```
+D y = \t-> y t + sin t 
+```
+ 
+another differential equation with a simple right hand sinde might be defined as:
+
+```
+D y = sin
+```
+
+Baysig does not currently support higher-order differential equations. 
+
+In addition to defining the function and its initial value, the
+variables `dt` and `tmax` also need to be in scope which will define
+the timestep and the duration of integration. For instance
+
+```
+tmax = 1
+dt = 0.001
+```
+
+The value of these variables are taken frmo the local scope in which
+the numerical integration is performed, so it can be reassigned locally:
+
+```
+ysig = let dt = 0.01
+           tmax = 10.0
+           y_0 = 1
+           D y t = 1 - y t
+       in y
+```
+
+The *result* of defining a differential equation is a function that
+can be evaluated at any timepoint up until tmax. If it is evaluated
+beyond this timepoint, the program may crash.
 
 ## Stochastic differential equations
 
