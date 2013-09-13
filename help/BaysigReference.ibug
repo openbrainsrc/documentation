@@ -639,7 +639,7 @@ introducing the SDE itself.
 ### Wiener process distribution
 
 The function `wiener` defines a probability distribution over
-functions which are realisations of the wiener process. You can sample
+functions which are realisations of the [Wiener process](http://en.wikipedia.org/wiki/Wiener_process). You can sample
 from this process within the `prob` and `~` notation. For instance, we
 may be interested in the distribution of the values of the wiener
 process at a timepoint 1.0 (dimensionless)
