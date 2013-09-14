@@ -656,13 +656,44 @@ should be mean 0, standard deviation 1).
 
 ### Defining stochastic differential equations
 
+A stochastic diffferential equation is then introduced based on the
+wiener process realisation. As with ordinary differential equations,
+the initial value need to be defined first by assigning a value
+(either with equality `=` or by sampling from a probability
+distribution with `~`) to the name of the function to be integrated
+with "_0" appended. Then, the pattern `d` preceeds the function
+definition on the left hand side and the operator `d` is used to
+access the differential of the wiener process realisation on the right hand side
+
+> sdeAtOne = prob
+>    s_0 ~ gamma 1 1
+>    w ~ wiener
+>    d s t = - s t + d w t
+>    return (s 1.0)
+
+?> wienersAtOne
+
+
 d pattern, d w t
 
 equivalent with unfold
 
+## Types in differential equations
+
+Readers with a background in typed programming may at this point be
+puzzled by how the definitions of differential equations fit in with
+the type system. 
+
+In *ordinary differenial equations*, the differential operator `D` on
+the left-hand side implies that its argument must have type `Real ->
+Real` and that the value the pattern `D f` matches against must also
+have type `Real -> Real`. On the right-hand side of this defintion,
+the function being defined is in scope, and its value can be read by
+applying a time value to it.
+
 ## Implicit arguments
 
-definition of w and d on rhs.
+definition of wiener and d on rhs of SDE.
 
 ## Vectors
 
