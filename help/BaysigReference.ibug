@@ -673,10 +673,9 @@ access the differential of the wiener process realisation on the right hand side
 
 ?> wienersAtOne
 
-
-d pattern, d w t
-
-equivalent with unfold
+Note that unlike in the mathematical notation, the deterministic part
+of the SDE (in the above, `- s t`) is not multiplied by an
+infinitesimal timestep (typically written as dt). 
 
 ## Types in differential equations
 
@@ -687,9 +686,26 @@ the type system.
 In *ordinary differenial equations*, the differential operator `D` on
 the left-hand side implies that its argument must have type `Real ->
 Real` and that the value the pattern `D f` matches against must also
-have type `Real -> Real`. On the right-hand side of this defintion,
-the function being defined is in scope, and its value can be read by
+have type `Real -> Real`. Conceptually, the `D` operators is itself a
+function operating on functions, with `D` having type `(Real -> Real)
+-> (Real -> Real)`. On the right-hand side of this defintion, the
+function being defined is in scope, and its value can be read by
 applying a time value to it.
+
+In *stochastic differential equations*, the `d` operator on the
+left-hand side has the same conceptual type as the `D` operator for
+ordinary differential equations. On the right hand side, `d` also has
+type `(Real -> Real) -> (Real -> Real)` and acts as a function rather
+than a pattern. Thus, in the definition of a SDE:
+
+```
+d s = \t -> a + b * d w t
+```
+
+the wiener process realisation `w` is a function of type `Real ->
+Real`. The application of `w` to `d` also has the combined type `Real
+-> Real`, and finally this is applied to a timevalue `t` of type
+`Real` giving an overall type of `d w t` of a single `Real` number.
 
 ## Implicit arguments
 
