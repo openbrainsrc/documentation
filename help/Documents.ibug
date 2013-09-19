@@ -1,4 +1,4 @@
-### Documents
+# Documents
 
 Documents in BayesHive contain three different kinds of sections,
 which are distinguished by the first character(s) in the line: text, code
@@ -15,7 +15,7 @@ and questions.
 
 ```
 
-## Text
+# Text
 
 Any line in a document that does *not* start with a `>` or `?>` is
 **text**. You can use text to provide explanations of the code, to
@@ -47,7 +47,7 @@ Section headings start with a `#`.
 
 [Additional documentation](http://daringfireball.net/projects/markdown/syntax)
 
-## Title section
+# Title section
 
 If the first line(s) start with a percentage sign ("%") then this
 section is treated as a title specification. The first line starting
@@ -71,9 +71,11 @@ Example:
 When on board H.M.S. 'Beagle,' as naturalist, I was much struck with certain facts...
 ```
 
-## Table of 
+# Table of contents
 
-## Code 
+Inserting the text `[[TOC]]` will generate a table of contents in place.
+
+# Code 
 
 Lines that start with `> ` are interpreted as code written in the
 Baysig language. They must consist of a *declaration*, a *type
@@ -94,7 +96,7 @@ programming languages with an indentation.
 Please consult the Baysig quick tour and Baysig reference manual for
 further documentation. 
 
-## Questions
+# Questions
 
 Document sources can contain *questions* which in the typeset document
 are augmented with answers. Questions start with `?> ` and are
