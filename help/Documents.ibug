@@ -104,5 +104,5 @@ followed by a Baysig expression which is *evaluated* to obtain the
 answer.
 
 Some answers generate special outputs, depending on their
-types. *Lists of records* are typeset at tables and *Plot* values are
+types. *Lists of records* are typeset as tables and *Plot* values are
 replaced by plots of the underlying data.
