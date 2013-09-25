@@ -812,9 +812,18 @@ posterior <* estimate model observed_data
 ```
 
 `estimate` is not a function, because it needs to "look inside" the
-definition of the model. It is therefore called as a portal source.
+definition of the model. It is therefore called using `<*` instead of
+`=`.  
+
+The resultant type of running estimate, here assigned to the
+`posterior`, is a probability distribution over the unobserved
+parameters in the model given the date. We explain this in detail
+below.
 
 ## Statistical models
+
+Statistical models passed to the estimate procedure have type `Prob a`
+and several parameters 
 
 priors
 
