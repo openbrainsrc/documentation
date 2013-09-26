@@ -57,10 +57,8 @@ When the document is typeset, questions are replaced by their answers.
 This allows you to build a full report or any document describing a
 particular analysis within the Baysig environment. 
 
-Code is typeset with a red bar on the *left*. Questions and answers
-are typeset with a green bar on the *right*. This allows you to
-distinguish between code and questions/answers when printed on a
-black-and-white printer.
+Code is typeset with a red bar. Questions and answers are typeset with
+a green bar. 
 
 > myString = "This is a string"
 
@@ -798,7 +796,34 @@ repeat
 
 # Statistical inference
 
+Baysig is desinged to enable statistical inference in complex models
+and to enable the exploitation of the result of statistical
+estimation. Estimation in Bayesig is invoked with a single call to a
+procedure based on (1) a probabilistic model written as a probability
+distribution and (2) a value representing the observed data. The
+*outcome* of statistical estimation is a probability distribution over
+the parameters in the statistical model, where each parameter is
+represented as a field in a record.  This resulting probability
+distribution is a representation of what Bayesians call the
+*posterior*. The complete call takes this form
+
+```
+posterior <* estimate model observed_data
+```
+
+`estimate` is not a function, because it needs to "look inside" the
+definition of the model. It is therefore called using `<*` instead of
+`=`.  
+
+The resultant type of running estimate, here assigned to the
+`posterior`, is a probability distribution over the unobserved
+parameters in the model given the date. We explain this in detail
+below.
+
 ## Statistical models
+
+Statistical models passed to the estimate procedure have type `Prob a`
+and several parameters 
 
 priors
 
