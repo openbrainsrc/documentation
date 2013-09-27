@@ -824,7 +824,9 @@ below.
 
 Statistical models passed to the estimate procedure have type `Prob a`
 and several parameters that are sampled using the `~` notation in the
-definition of the model, typically with the `prob` notation.
+definition of the model, typically with the `prob` notation. Models
+can be built using function application to form complex models out of
+simpler building blocks.
 
 priors
 
