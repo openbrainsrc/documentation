@@ -169,8 +169,8 @@ declares that `**` is to be treated as an infix operator with:
   will be interpreted as `(a**b)**c`.
 
 * Precedence level 7. Since this is higher than that of addition (`+`, level
-  6; see table above) but higher than exponentiation (`^`, level 8), `a
-  + b ** c` is parsed as `a + (b ** c)` but `a ^ b ** c` is parsed as
+  6; see table above) but higher than exponentiation (`^`, level 8), `a  + b ** c` 
+  is parsed as `a + (b ** c)` but `a ^ b ** c` is parsed as
   `(a ^ b) ** c`.
 
 After the fixity declaration, you then need to define the function
