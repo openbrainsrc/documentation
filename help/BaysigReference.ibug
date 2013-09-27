@@ -155,7 +155,14 @@ conjunction with pairs (see below) to support a more traditional
 syntax for multiple arguments.
 
 
-Functions can also be declared as infix operators. 
+Functions can also be declared as infix operators. First, the new
+operator's precedence and associativity has to be declared on a
+separate line. For instance,
+
+```
+infixl 5 **
+```
+
 infix declarations
 
 dollar
