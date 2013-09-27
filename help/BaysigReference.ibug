@@ -88,20 +88,20 @@ syntax as in most other programming languages.  Standard arithmetic
 operators such as `+`, `-`, `*`, `/`, and functions such as `sin`, `cos` can
 be used directly as written in mathematical notation.
 
-| Operator  | What it is  | Precedence    | Example  |       | 
-|-----------|-------------|---------------|----------|-------|
-| `+`       | Addition    |               | 2+2      | = 4   |
-| `-`       | Substraction|               | 1-5      | 
-| `*`       | multiplication|             | x*5      |
-| `/`       | Division |                  | 4/2.3    | 
+| Operator  | What it is  | Precedence    | Example  |  
+|-----------|-------------|---------------|----------|
+| `+`       | Addition    |        6      | 2+2      |
+| `-`       | Substraction|        6      | 1-5      | 
+| `*`       | Multiplication|      7      | x*5      |
+| `/`       | Division |           7      | 4/2.3    | 
 | `-`       | Unary minus |               | -5       |
-| `^`       | Exponentiation |
+| `^`       | Exponentiation |     8      | 2.5^1.01 |
 
 | Operator  | What it is  | Example  |
 |-----------|-------------|----------|--------
-| exp       | natural exponentiation | exp(1)
-| log       | natural logarithm | log(3)
-| sin, cos  | sine and cosine | sin(4.3)
+| exp       | natural exponentiation | exp 1
+| log       | natural logarithm | log 3 
+| sin, cos  | sine and cosine | sin 4.3 
 
 When a number is assigned to a variable that variable can be used to
 represent the number itself in a calculation.
@@ -160,18 +160,76 @@ operator's precedence and associativity has to be declared on a
 separate line. For instance,
 
 ```
-infixl 5 **
+infixl 7 **
 ```
 
-infix declarations
+declares that `**` is to be treated as an infix operator with:
 
-dollar
+* Left associativity (`infixl` rather than `infixr`). Thus `a**b**c`
+  will be interpreted as `(a**b)**c`.
+
+* Precedence level 7. Since this is higher than that of addition (`+`, level
+  6; see table above) but higher than exponentiation (`^`, level 8), `a
+  + b ** c` is parsed as `a + (b ** c)` but `a ^ b ** c` is parsed as
+  `(a ^ b) ** c`.
+
+After the fixity declaration, you then need to define the function
+implementing the operator itself. This is done by surrounding the
+operator by arguments on the left-hand side, and giving the rule for
+the result on the right hand side:
+
+```
+x ** y = x + y + 5
+```
+
+This is done in the same way as function definition -- in fact, infix
+operators are just functions. We could equally have declared:
+
+```
+** = \x -> \y -> x + y + 5
+```
+
+Infix operators can take as arguments and return any type, not just
+numbers, just like any other function. 
+
+A useful operator defined in this way, which is used extensively
+in Baysig, is the dollar operator (`$`). This has a very simple defintion:
+
+```
+infixr 0 $
+
+f $ y = f x
+```
+
+The dollar operator `$` simply applies the argument to its right to
+the function on its left. This is only useful in that it prevents us
+from writing a lot of parentheses. For instance, if we want to calculate
+
+$$sin(1.1+2.2)$$
+
+we can write this with either parentheses:
+
+```
+sin(1.1+2.2)
+```
+
+or with the dollar operator
+
+```
+sin $ 1.1+2.2
+```
+
+On the other hand `sin 1.1+2.2` would be interpreted as `(sin
+1.1)+2.2` because function application takes precedence over any infix
+operator application. 
 
 lambda and top level function declarations. let. 
 
 variable rules - not start with upper case.
 
 functions as first class entities. higher-order functions.
+
+shadowing.
 
 deceptively simple but very powerful. refer to existing literature.
 
