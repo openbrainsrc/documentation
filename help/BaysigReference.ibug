@@ -505,7 +505,152 @@ h = (\{..}-> height) r
 
 The constructs `with` and `when` are defined in terms of the wildcard pattern.
 
-## Probability distributions
+
+## Differential equations
+
+Baysig has a special pattern that allows the introduction of [ordinary
+differential
+equations](http://en.wikipedia.org/wiki/Ordinary_differential_equation). By
+adding a `D` in front a function definition, you are telling Baysig
+that the right-hand side defines the derivative of the function
+body. You also need to give an initial value for the function by
+assigning a value to the varialbe which has "_0" appended to the
+function name. For instance, to solve the differential equation
+
+$$\frac{dy}{dx} = y + sin(t)$$
+
+$$y(0) = 1$$
+
+would be written in Baysig:
+
+```
+y_0 = 1
+
+D y t = y t + sin t
+```
+
+Here, we used the shorthand form of function that puts the function
+argument on the left hand side. The following are also valid definitions of `y`:
+
+```
+D y = \t-> y t + sin t 
+```
+ 
+another differential equation with a simple right hand sinde might be defined as:
+
+```
+D f = sin
+```
+
+Baysig does not currently support higher-order differential equations. 
+
+In addition to defining the function and its initial value, the
+variables `dt` and `tmax` also need to be in scope which will define
+the timestep and the duration of integration. For instance
+
+> tmax = 2
+> dt = 0.001
+
+The value of these variables are taken frmo the local scope in which
+the numerical integration is performed, so it can be reassigned locally:
+
+```
+ysig = let dt = 0.01
+           tmax = 10.0
+           y_0 = 1
+           D y t = 1 - y t
+       in y
+```
+
+The *result* of defining a differential equation is a function that
+can be evaluated at any timepoint with standatd function application
+(e.g. `y 0.5`) up until `tmax`. If it is evaluated beyond this
+timepoint, the program may crash.
+
+## Implicit arguments
+
+definition of wiener and d on rhs of SDE.
+
+## Vectors
+
+Vectors are heterogeneous collections of elements. 
+
+To build a vector
+
+```
+fillV : Int -> (Int -> a) -> Vector a
+
+v = fillV 5 \i-> 0
+w = fillV 3 \i -> cos (unround i)
+```
+
+You can pattern match against a vector:
+
+```
+ <x,y,z> = fillV 3 \i -> sin (unround i)
+```
+brings into scope variables `x`, `y` and `z` (but no vectors). 
+
+Operations on vectors: 
+
+| function name  | type       | description    | example  |
+|----------------|------------|----------------|----------|
+| `dim`          | `Vector a -> Int` | vector length  | `dim v => 5` | 
+| `!`            | `Vector a -> Int -> a` | index elements | `v ! 2 => 0` | 
+| `*^`           | `Real -> Vector Real -> Vector Real` | multiply by scalar | `5.1 *^ w`|
+| `^+^`          | `Vector Real -> Vector Real -> Vector Real` | add two vectors | `w ^+^ w`|
+| `^*%`          | `Vector Real -> Matrix Real -> Vector Real` | Vector times Matrix | |
+| `%*^`          | `Matrix Real -> Vector Real -> Matrix Real` | Matrix times Vector | |
+| `vcons`        | `a -> Vector a -> Vector a` | prepend an element  |  | 
+| `vmap`         | `(a->b) -> Vector a -> Vector b` | apply a function to every element  | 
+| `slice`        | `Int -> Int -> Vector a -> Vector a` | extract a subvector given starting index and length
+
+in some of these operators, the symbol `^` reminds you on which side
+of the operator the vector goes.
+
+## Matrices 
+
+To build a matrix: 
+
+```
+fillM : (Int,Int) -> ((Int,Int) -> a) -> Matrix a
+
+ident n = fillM (n,n) \(i,j) -> if i==j then 1 else 0
+mymat = fillM (5,5) \(i,j) -> cos (unround i)+sin(unround j)
+```
+
+Operations on matrices: 
+
+| function name  | type       | description    | example  |
+|----------------|------------|----------------|----------|
+| `mdims`            | `Matrix a -> (Int,Int)` | matrix size  | `mdims m => (5,5)` | 
+| `!!`              | `Matrix a -> (Int,Int) -> a` | index elements | `ident 4 !! (2,2) => 1` | 
+| `*%`             | `Real -> Matrix Real -> Matrix Real` | multiply by scalar | `5.1 *% mymat`|
+| `%+%`             | `Matrix Real -> Matrix Real -> Matrix Real` | add two vectors | `mymat %+% mymat`|
+| `%*%`             | `Matrix Real -> Matrix Real -> Matrix Real` | multiply two matrices | `mymat %*% mymat`|
+| `^*%`             | `Vector Real -> Matrix Real -> Vector Real` | Vector times Matrix | |
+| `%*^`             | `Matrix Real -> Vector Real -> Matrix Real` | Matrix times Vector | |
+| `svd`             | `Matrix Real -> List (Matrix Real)` | Singular value decomposition
+| `transM`          | `Matrix a -> Matrix a` | transpose | `transM mymat` |
+| `diag`            | `Vector a-> Matrix a` | create matrix from diagonal| 
+| `mmap`            | `(a->b) -> Matrix a -> Matrix b` | apply a function to every matrix element |
+
+In some of these operators, the symbol `%` reminds you on which side
+of the operator the matrix goes.
+
+If you use matrix or vector arithmetic with inconsistent dimensions, Terrible Things happen.
+
+## User-defined data types
+
+Maybe, Either, ()
+
+Definition of List, Bool
+
+## Portals
+
+pure functions and side effects
+
+# Probability distributions
 
 Probability distributions in Baysig are *first-class entities* - they
 can be build from simpler parts, assigned to variables and passed as
@@ -628,69 +773,6 @@ of type `a`, each of which having 10 elements. For instance, `repeat
 | multivariate normal | `multiNormal` | `mean : Vector Real` `cov : Matrix Real` | `Vector Real`
 | wiener process    | `wiener` | none | `Real -> Real`
 
-TODO: sample
-
-## Differential equations
-
-Baysig has a special pattern that allows the introduction of [ordinary
-differential
-equations](http://en.wikipedia.org/wiki/Ordinary_differential_equation). By
-adding a `D` in front a function definition, you are telling Baysig
-that the right-hand side defines the derivative of the function
-body. You also need to give an initial value for the function by
-assigning a value to the varialbe which has "_0" appended to the
-function name. For instance, to solve the differential equation
-
-$$\frac{dy}{dx} = y + sin(t)$$
-
-$$y(0) = 1$$
-
-would be written in Baysig:
-
-```
-y_0 = 1
-
-D y t = y t + sin t
-```
-
-Here, we used the shorthand form of function that puts the function
-argument on the left hand side. The following are also valid definitions of `y`:
-
-```
-D y = \t-> y t + sin t 
-```
- 
-another differential equation with a simple right hand sinde might be defined as:
-
-```
-D f = sin
-```
-
-Baysig does not currently support higher-order differential equations. 
-
-In addition to defining the function and its initial value, the
-variables `dt` and `tmax` also need to be in scope which will define
-the timestep and the duration of integration. For instance
-
-> tmax = 2
-> dt = 0.001
-
-The value of these variables are taken frmo the local scope in which
-the numerical integration is performed, so it can be reassigned locally:
-
-```
-ysig = let dt = 0.01
-           tmax = 10.0
-           y_0 = 1
-           D y t = 1 - y t
-       in y
-```
-
-The *result* of defining a differential equation is a function that
-can be evaluated at any timepoint with standatd function application
-(e.g. `y 0.5`) up until `tmax`. If it is evaluated beyond this
-timepoint, the program may crash.
-
 ## Stochastic differential equations
 
 Baysig also supports [stochastic differential
@@ -770,89 +852,6 @@ Real`. The application of `w` to `d` also has the combined type `Real
 -> Real`, and finally this is applied to a timevalue `t` of type
 `Real` giving an overall type of `d w t` of a single `Real` number.
 
-## Implicit arguments
-
-definition of wiener and d on rhs of SDE.
-
-## Vectors
-
-Vectors are heterogeneous collections of elements. 
-
-To build a vector
-
-```
-fillV : Int -> (Int -> a) -> Vector a
-
-v = fillV 5 \i-> 0
-w = fillV 3 \i -> cos (unround i)
-```
-
-You can pattern match against a vector:
-
-```
- <x,y,z> = fillV 3 \i -> sin (unround i)
-```
-brings into scope variables `x`, `y` and `z` (but no vectors). 
-
-Operations on vectors: 
-
-| function name  | type       | description    | example  |
-|----------------|------------|----------------|----------|
-| `dim`          | `Vector a -> Int` | vector length  | `dim v => 5` | 
-| `!`            | `Vector a -> Int -> a` | index elements | `v ! 2 => 0` | 
-| `*^`           | `Real -> Vector Real -> Vector Real` | multiply by scalar | `5.1 *^ w`|
-| `^+^`          | `Vector Real -> Vector Real -> Vector Real` | add two vectors | `w ^+^ w`|
-| `^*%`          | `Vector Real -> Matrix Real -> Vector Real` | Vector times Matrix | |
-| `%*^`          | `Matrix Real -> Vector Real -> Matrix Real` | Matrix times Vector | |
-| `vcons`        | `a -> Vector a -> Vector a` | prepend an element  |  | 
-| `vmap`         | `(a->b) -> Vector a -> Vector b` | apply a function to every element  | 
-| `slice`        | `Int -> Int -> Vector a -> Vector a` | extract a subvector given starting index and length
-
-in some of these operators, the symbol `^` reminds you on which side
-of the operator the vector goes.
-
-## Matrices 
-
-To build a matrix: 
-
-```
-fillM : (Int,Int) -> ((Int,Int) -> a) -> Matrix a
-
-ident n = fillM (n,n) \(i,j) -> if i==j then 1 else 0
-mymat = fillM (5,5) \(i,j) -> cos (unround i)+sin(unround j)
-```
-
-Operations on matrices: 
-
-| function name  | type       | description    | example  |
-|----------------|------------|----------------|----------|
-| `mdims`            | `Matrix a -> (Int,Int)` | matrix size  | `mdims m => (5,5)` | 
-| `!!`              | `Matrix a -> (Int,Int) -> a` | index elements | `ident 4 !! (2,2) => 1` | 
-| `*%`             | `Real -> Matrix Real -> Matrix Real` | multiply by scalar | `5.1 *% mymat`|
-| `%+%`             | `Matrix Real -> Matrix Real -> Matrix Real` | add two vectors | `mymat %+% mymat`|
-| `%*%`             | `Matrix Real -> Matrix Real -> Matrix Real` | multiply two matrices | `mymat %*% mymat`|
-| `^*%`             | `Vector Real -> Matrix Real -> Vector Real` | Vector times Matrix | |
-| `%*^`             | `Matrix Real -> Vector Real -> Matrix Real` | Matrix times Vector | |
-| `svd`             | `Matrix Real -> List (Matrix Real)` | Singular value decomposition
-| `transM`          | `Matrix a -> Matrix a` | transpose | `transM mymat` |
-| `diag`            | `Vector a-> Matrix a` | create matrix from diagonal| 
-| `mmap`            | `(a->b) -> Matrix a -> Matrix b` | apply a function to every matrix element |
-
-In some of these operators, the symbol `%` reminds you on which side
-of the operator the matrix goes.
-
-If you use matrix or vector arithmetic with inconsistent dimensions, Terrible Things happen.
-
-## User-defined data types
-
-Maybe, Either, ()
-
-Definition of List, Bool
-
-## Portals
-
-pure functions and side effects
-
 ## Sampling
 
 sampling
@@ -909,7 +908,7 @@ priors
 
 use of improper priors 
 
-new prob distributions: LogPdf
+treatment of independent variables
 
 repeat
 
@@ -919,7 +918,7 @@ SDEs
 
 return
 
-treatment of independent variables
+types
 
 ## Calling *estimate*
 
@@ -934,6 +933,8 @@ Some things you can do
 * arguments to models
 
 * parametric on distributions
+
+* new prob distributions: LogPdf
 
 ## Limitations
 
