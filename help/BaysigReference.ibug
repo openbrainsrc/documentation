@@ -863,7 +863,7 @@ repeat
 
 Baysig is desinged to enable statistical inference in complex models
 and to enable the exploitation of the result of statistical
-estimation. Estimation in Bayesig is invoked with a single call to a
+estimation. Estimation in Baysig is invoked with a single call to a
 procedure based on (1) a probabilistic model written as a probability
 distribution and (2) a value representing the observed data. The
 *outcome* of statistical estimation is a probability distribution over
