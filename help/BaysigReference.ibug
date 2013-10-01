@@ -962,7 +962,7 @@ The probability distribution `any` can be used as an improper
 distribution for observed data in this case. It has the same defintion
 as `improper_uniform`, but has the special effect that `estimate` will
 remember the observed values after an `update` such that replicated
-data datasets `sample`d in this way will have the same independent
+data datasets sampled in this way will have the same independent
 variable values.
 
 The previous example can then be written using improper priors in this way:
@@ -978,8 +978,8 @@ improperLinearRegression = prob
       return (x,y)
 ```
 
-We stress that this is not in any sense *better* than
-`univariateLinearRegression` and the general advice in Bayesian
+We stress that `improperLinearRegression` is not necessarily *better* than
+`univariateLinearRegression`; the general advice in Bayesian
 statistics textbooks is that if you have prior knowledge, you should
 use it.
 

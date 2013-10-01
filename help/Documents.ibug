@@ -61,6 +61,7 @@ organisation and the date.
 Example:
 
 ```
+
 % On the Origin of Species
 % Charles Darwin, M.A.
 % Fellow Of The Royal, Geological, Linnaean, Etc., Societies
@@ -86,10 +87,10 @@ and another one starts. This replaces the brakcets found in many
 programming languages with an indentation. 
 
 ```
-  This is a function
+ This is a function
   
-  > f x 
-  >   = x + 1
+ > f x 
+ >   = x + 1
 
 ```
 
