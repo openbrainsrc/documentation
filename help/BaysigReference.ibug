@@ -902,7 +902,25 @@ univariateLinearRegression = prob
       return (x,y)
 ```
 
-two interpretations
+Since the Prob monad just keeps track of a seed for pseudo-random
+number generation this definition is equivalent to the following
+pseudocode in an imperative programming language:
+
+```
+proccedure univariateLinearRegression
+   slope     :=  genNormal(0,1)
+   offset    :=  genNormal(0,1)
+   variance  :=  genGamma(1,1) 
+
+   for i := 1 to 20
+      x[i] := genUniform(0,1)
+      y[i] := genNormal(offset + slope * x,variance)      
+   end
+
+   return [x,y]
+end
+```
+
 
 priors
 
