@@ -921,18 +921,77 @@ proccedure univariateLinearRegression
 end
 ```
 
+In the next section we will see that the defintion
+`univariateLinearRegression` also has a second interpretation that
+enables it to be used in statistical inference.
 
-priors
+### Priors
 
-use of improper priors 
+The distributions from which the model parameters (here `slope`,
+`offset` and `variance`) are drawn (`normal 0 1`, `normal 0 1` and
+`gamma 1 1`) are known in Bayesian statistics as the *prior* and must
+have type `Prob a` where `a` is the type of the parameter.  
 
-treatment of independent variables
+Sometimes, it may be desirable to use an *improper* prior, which does
+not represent a valid probability distribution but can nevertheless be
+used for inference. Baysig has these improper distributions built in:
+
+* `improper_uniform`: a prior that is flat everywhere, i.e. completely
+  insensitive to the parameter value
+
+* `improper_uniform_positive`: a prior that is flat for any positive
+  value.
+
+Because these are not valid probability distributions, you cannot
+sample (generate data) from such a model. The model can *only* be used
+to estimate parameters. You may later `update` the model and you can
+sample from it.
+
+One way in which Baysig differs from BUGS-like languages is that
+because we are explicitly specifying data-generating mechanism we must
+give a distribution for the observed independent variables (`x` in the
+above example). This is the case even if the independent variables in
+the data to be analysed have been controlled in a systematic
+fashion. However, the distribution from which these observed variables
+are drawn (`uniform 0 1`) above does not affect the estimation unless
+that distribution is itself parametrised by other parameters
+(e.g. `uniform lo hi` where `lo` and `hi` then themselves will be
+estimated.)
+
+The probability distribution `any` can be used as an improper
+distribution for observed data in this case. It has the same defintion
+as `improper_uniform`, but has the special effect that `estimate` will
+remember the observed values after an `update` such that replicated
+data datasets `sample`d in this way will have the same independent
+variable values.
+
+The previous example can then be written using improper priors in this way:
+
+```
+improperLinearRegression = prob
+   slope    ~  improper_uniform
+   offset   ~  improper_uniform
+   variance ~  improper_uniform_positive
+   repeat 20 $ prob
+      x ~ any
+      y ~ normal (offset + slope * x) variance
+      return (x,y)
+```
+
+We stress that this is not in any sense *better* than
+`univariateLinearRegression` and the general advice in Bayesian
+statistics textbooks is that if you have prior knowledge, you should
+use it.
+
+### Repetitions and loops
 
 repeat
 
 unfold
 
 SDEs
+
+### Return value
 
 return
 
