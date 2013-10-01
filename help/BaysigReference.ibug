@@ -985,17 +985,104 @@ use it.
 
 ### Repetitions and loops
 
-repeat
+A value drawn from a probability distribution of type `Prob a` in the
+`~` within a `prob` block denotes a single value of type `a`. For instance, in
 
-unfold
+```
+myValueModel = prob
+  mean ~ improper_uniform
+  var  ~ gamma 1 1
+  x ~ normal mean var
+  return x
+```
 
-SDEs
+the type of the overall model is `Prob Real` and the variable `x`
+within the prob-block has type `Real` because is is drawn from a
+probability distribution of type `Prob Real`, namely 
+`normal mean var`. 
+
+Models for several values must explicitly use a looping construct to
+describe how the different values are related to each other and
+whether parameters are identical for all values or each value rely on
+different parameter draws.
+
+The simplest looping construct is `repeat`, which takes two arguments:
+an integer representing the *number* of repetitions, and a probability
+distribution which is to be repeated (the *base* distribution). If the
+base distribution has type `a`, then the overall type of 
+`repeat n base` has type `Prob (List a)`, i.e. a probability distribution over
+lists of values of type `a`. For instance, `repeat 20 (normal 0 1)` is
+a probability distribution over lists of real numbers; each list drawn
+from this distribution has 20 elements. In statistical jargon, we
+would say that repeat implies that the elements are *independent and
+indentically distributed*, often abbreviated to *iid*. 
+
+The base distribution passed to `repeat` can itself contain draws from
+further parameters, and repetitions can be nested to create
+*hierarchical models*.  In all of these cases, it is simple to
+determine whether parameters are shared across loop repetitions: if
+the parameter is drawn *inside* the loop, the parameter is not shared
+and can have different values across repetitions. If the parameter
+is drawn outside (i.e. *before* a `repeat`, then the parameter is just
+drawn once and the same value is used across repetitions. For
+instance, in the following hierarchical model:
+
+```
+myNestedModel = prob
+   x ~ normal 0 1
+   repeat 10 $ prob
+      y ~ normal x 1
+      repeat 20 $ prob
+         z ~ normal y 1
+	 return z
+```
+
+the variable `x` is drawn once, the draw of `y` is repeated across the
+outermost loop (the `repeat 10` line) but shared across the
+innermost loop (the `repeat 20` line) for each repetition of the
+outermost loop.
+
+TODO: unfold
+
+TODO: stochastic differential equations in models
+
+Models do not have to have loops or timeseries
+constructs. `myValueModel`, defined above as a statistical model for a
+single value, is an entirely valid statistical model. There is no need
+as such for repetition in Baysig or elsewhere in Bayesian statistics.
 
 ### Return value
 
-return
+The last line of the model defines the overall type of the model. This
+last line must be either a `return` statement or must be a valid
+probability distribution. For instance, the following two models
+`modelA` and `modelB` are equivalent and both a valid models:
 
-types
+```
+modelA = prob
+   x ~ normal 0 1
+   y ~ normal x 1
+   return y
+```
+
+and 
+
+
+```
+modelB = prob
+   x ~ normal 0 1
+   normal x 1
+```
+
+The type of the expression passed to `return` determines the overall
+type of the model, such that `modelA` and `modelB` both have type
+`Prob Real` because `normal m v` has type Prob Real. However, if the
+`return` is called within a `repeat` then the type of value passed to
+`return` gets lifted into a `List`, possibly multiple times for nested
+repetitions. For instance, `univariateLinearRegression` has type 
+`Prob (List (Real, Real))` and `myNestedModel` has type `Prob (List (List Real))`
+
+### Monads and statistical models
 
 ## Calling *estimate*
 
@@ -1107,7 +1194,7 @@ the state space is observed. You can use `map` in the last line of a
 model to control this:
 
 ```
---- NOTE: CURRENTLY BROKEN
+--- NOTE: CURRENTLY BROKEN - still true?
 
 model = prob
   v ~ gamma 1 1
