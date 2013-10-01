@@ -1055,8 +1055,7 @@ as such for repetition in Baysig or elsewhere in Bayesian statistics.
 
 The last line of the model defines the overall type of the model. This
 last line must be either a `return` statement or must be a valid
-probability distribution. For instance, the following two models
-`modelA` and `modelB` are equivalent and both a valid models:
+probability distribution. For instance, the following valid model:
 
 ```
 modelA = prob
@@ -1065,7 +1064,7 @@ modelA = prob
    return y
 ```
 
-and 
+is equivalent to:
 
 
 ```
@@ -1083,6 +1082,8 @@ repetitions. For instance, `univariateLinearRegression` has type
 `Prob (List (Real, Real))` and `myNestedModel` has type `Prob (List (List Real))`
 
 ### Monads and statistical models
+
+TODO
 
 ## Calling *estimate*
 
