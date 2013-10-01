@@ -12,7 +12,7 @@ probability density functions for each distribution.
 
 Further probability distributions can be built from this elementary one. Some are already defined in Baysig's standard library, such as the standard normal distribution `unormal`:
 
-?> distPlot $ normal 0 1
+?> distPlot (normal 0 1)
 
 a uniform distribution with lower and upper bounds `uniform 5.0 10.0`
 
