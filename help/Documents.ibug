@@ -1,4 +1,6 @@
-# Documents
+---
+title: Documents
+---
 
 Documents in BayesHive contain three different kinds of sections,
 which are distinguished by the first character(s) in the line: text, code
@@ -49,23 +51,22 @@ Section headings start with a `#`.
 
 # Title section
 
-If the first line(s) start with a percentage sign ("%") then this
-section is treated as a title specification. The first line starting
-with a percentage sign is typeset in a large font and is generally
-considered the document title. 
+The beginning of the document can contain a *metadata* block that is
+surrounded by lines containing three hyphens (`---`) each. This block
+can contain annotations in the `keyword: value` syntax.
 
-Subsequent lines starting with a percentage sign will be typeset in a
-smaller font and can be used for the name of the authors, their
-organisation and the date.
+Currently supported keywords are `title`, `author` and `date`. These
+will be typeset with appropriate heading styles.
 
 Example:
 
 ```
-
-% On the Origin of Species
-% Charles Darwin, M.A.
-% Fellow Of The Royal, Geological, Linnaean, Etc., Societies
-% October 1st, 1859
+---
+title: On the Origin of Species
+author: Charles Darwin, M.A., Fellow Of The Royal, Geological, Linnaean, Etc., Societies
+date: October 1st, 1859
+---
+```
 
 # Introduction
 
