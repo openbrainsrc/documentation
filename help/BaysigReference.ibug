@@ -1,5 +1,6 @@
-% Baysig: reference manual
-
+---
+title: Baysig: reference manual
+---
 ## Table of contents
 
 [[TOC]]
@@ -1103,7 +1104,7 @@ and
 
 Notice that m here must be a *higher-order* type that takes a type
 parameter to form a concrete type. Types like `Real` and `String`
-*cannot* be monads &mdash; types like `List` and `Maybe` can be
+*cannot* be monads &mdash; only types like `List` and `Maybe` can be
 monads, because they need an additional type to form the type of a
 concrete value (a value cannot have a type `List`, but
 it can have a type `List Real`).
