@@ -1093,11 +1093,11 @@ is to use Baysig, it helps when building complex models.
 A monad is a data type `m` for which we can define operations:
 
 ```
-return : a -> t a
+ return : a -> t a
 ```
 and
 ```
->>= : m a -> (a -> m b) -> m b
+ >>= : m a -> (a -> m b) -> m b
 ```
 
 Notice that m here must be a *higher-order* type that takes a type
