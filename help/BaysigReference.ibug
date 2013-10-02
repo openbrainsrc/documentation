@@ -930,7 +930,9 @@ enables it to be used in statistical inference.
 The distributions from which the model parameters (here `slope`,
 `offset` and `variance`) are drawn (`normal 0 1`, `normal 0 1` and
 `gamma 1 1`) are known in Bayesian statistics as the *prior* and must
-have type `Prob a` where `a` is the type of the parameter.  
+have type `Prob a` where `a` is the type of the parameter.  The priors
+are therefore an *intrinsic part* of the model itself rather than
+being a different aspect. 
 
 Sometimes, it may be desirable to use an *improper* prior, which does
 not represent a valid probability distribution but can nevertheless be
@@ -1083,7 +1085,57 @@ repetitions. For instance, `univariateLinearRegression` has type
 
 ### Monads and statistical models
 
-TODO
+The syntax and the semantics of the statistical models in Baysig are
+derived from the *monadic* properties of probability
+distributions. While it is not necessary to understand what a *monad*
+is to use Baysig, it helps when building complex models. 
+
+A monad is a data type `m` for which we can define operations:
+
+```
+return : a -> t a
+```
+and
+```
+>>= : m a -> (a -> m b) -> m b
+```
+
+Notice that m here must be a *higher-order* type that takes a type
+parameter to form a concrete type. Types like `Real` and `String`
+*cannot* be monads &mdash; types like `List` and `Maybe` can be
+monads, because they need an additional type to form the type of a
+concrete value (a value cannot have a type `List`, but
+it can have a type `List Real`).
+
+The type `Prob` forms a monad, which means that the operations
+`return` and `>>=` are available for probability distributions.
+
+`return` turns a single value into a probability distribution. When
+sampled, this probability distribution *always* yields the value that
+was passed to `return`.
+
+?> return 3.14
+
+TODO `>>=`
+
+In addition to the existence of these operations, for a type formaing
+a monad has to saitsfy certain laws. TODO
+
+We can now see how the useful function `fmap` can be defined in terms
+of `return` and `>>=`:
+
+```
+fmap f p 
+
+    = p >>= (return . f)
+
+   
+    = p >>= (\x-> return (f x))
+ 
+   
+    = prob x ~ p 
+           return (f x)
+```
 
 ## Calling *estimate*
 
@@ -1091,9 +1143,9 @@ why?
 
 syntax
 
-return: prob over records
-
 use records to control what is observed. Structurally similar.
+
+return: prob over records
 
 Some things you can do
 
