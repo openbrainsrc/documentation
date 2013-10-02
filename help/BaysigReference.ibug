@@ -1096,6 +1096,7 @@ A monad is a data type `m` for which we can define operations:
  return : a -> t a
 ```
 and
+
 ```
  >>= : m a -> (a -> m b) -> m b
 ```
