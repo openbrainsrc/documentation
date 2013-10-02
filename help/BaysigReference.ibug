@@ -1141,21 +1141,72 @@ fmap f p
 
 ## Calling *estimate*
 
-why?
+The estimate procedure allows you to go beyond *simulating* data from
+models. Instead, it calculates the likely values of the model
+parameters given *observed* data. That it, estimate calculates the
+probability distribution over model parameters *given* the observed
+data.
 
-syntax
+`estimate` must be called at the top level and cannot be called inside
+let statements or function definitions. The syntax for using esitmate is:
 
-use records to control what is observed. Structurally similar.
+```
+parameter_pat <* estimate model_expr observed_data_expr
+```
 
-return: prob over records
+where 
 
-Some things you can do
+* `parameter_pat` is the pattern that will be bound to the probability
+  distribution over the unobserved parameters in the model
 
-* arguments to models
+* `model_expr` is the expression of the model which must have type
+  `Prob a` for some type `a`.
 
-* parametric on distributions
+* `observed_data_expr` is the expression for the observed data.
 
-* new prob distributions: LogPdf
+*None* of these have to be primitive variable names. You can compose
+the model or the observed data using function calls, e.g.
+
+```
+myModel distx disty = prob
+   x ~ distx 
+   y ~ disty 
+   return (x,y)
+
+pars <* esitmate (myModel (normal 0 1) (gamma 1 1)) 
+                 (3.1, 2.3) 
+```
+
+In many cases, the type of the data should be identical to the type of
+the model (wrapped in `Prob`). However, the type-checking rule for
+estimate is slightly more relaxed: `model_expr` must have type `Prob
+t0` and `observed_data_expr` must have type `t1` where `t0` and `t1`
+are *structurally similar*:
+
+* a type `t` is structurally similar to itself
+
+* `List x` is structurally similar to `List y` if and only if `x` is
+  structurally similar to `y`
+
+* Two record types are structurally similar if and only if their
+  *common fields* are all structurally similar
+
+
+This can be used to control what is observed in the model such that
+a general model can written without knowing exactly which components
+are observed.
+
+TODO: example: stochastic volatility
+
+`estimate` can be used to estimate parameters from new probability
+distributions that you write yourself. Any elementary probability
+distribution used must, howver, be associated with a valid *log-domain
+probability density function* (PDF). Baysig uses a simple naming
+convention to associate probability distributions with PDFs. If you
+introduce a new probability distribution, for instance named `myDist`,
+you must also define its PDF in the variable `myDistLogPdf`.
+
+TODO: Example
 
 ## Limitations
 
