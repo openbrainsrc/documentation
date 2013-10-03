@@ -1,4 +1,8 @@
-# Importing data
+---
+title: Importing data
+help-section: BayesHive
+help-section-order: 3
+---
 
 To upload a data file, click on the "plus-sign" button on the left 
 button on the left. You will need to enter a name for your new dataset, 

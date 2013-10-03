@@ -1,4 +1,8 @@
-### Baysig quick tour: Bayesian statistical inference
+---
+title: Baysig quick tour: Bayesian statistical inference
+help-section: Baysig quick tour
+help-section-order: 3
+---
 
 This is the third document in a quick tour of the Baysig programming language, following on from [[Baysig quick tour: probability distributions]]. The tour begins in [[Baysig quick tour: fundamentals]].
 

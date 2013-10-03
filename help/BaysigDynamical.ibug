@@ -1,4 +1,8 @@
-## Baysig quick tour: dynamical systems
+---
+title: Baysig quick tour: dynamical systems
+help-section: Baysig quick tour
+help-section-order: 4
+---
 
 This is the fourth document in a quick tour of the Baysig programming language, following on from [[Baysig quick tour: Bayesian statistical inference]]. The tour begins in [[Baysig quick tour: fundamentals]].
 

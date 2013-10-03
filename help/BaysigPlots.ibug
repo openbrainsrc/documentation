@@ -1,4 +1,9 @@
-# Baysig plots
+---
+title: Baysig plots
+help-section: Baysig documentation
+help-section-order: 2
+---
+
 
 Plots can be embedded in Baysig documents generated on
 [BayesHive](http://bayeshive.com). To generate a plot, put a value of

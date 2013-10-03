@@ -1,4 +1,9 @@
-# Baysig Standard Library
+---
+title: Baysig Standard Library
+help-section: Baysig documentation
+help-section-order: 3
+---
+
 
 Here is the Baysig standard library. You can use the functions in these
 files in your documents.

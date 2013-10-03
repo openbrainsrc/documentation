@@ -1,4 +1,9 @@
-## Baysig quick tour: probability distributions
+---
+title: Baysig quick tour: probability distributions
+help-section: Baysig quick tour
+help-section-order: 2
+---
+
 
 This is the second document in a quick tour of the Baysig programming 
 language, following on from [[Baysig quick tour: fundamentals]].

@@ -1,4 +1,8 @@
-## Baysig Test Suite
+---
+title: Baysig Test Suite
+help-section: Baysig documentation
+help-section-order: 3
+---
 
 Baysig has an extensive test suite comprised of probabilistic and deterministic tests. The results of the latest run is accessible at the URL [http://glutamate.github.io/baysig-tests/latest.html](http://glutamate.github.io/baysig-tests/latest.html). 
 

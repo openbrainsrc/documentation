@@ -1,4 +1,9 @@
-## BayesHive: Expression syntax
+---
+title: BayesHive: Expression syntax
+help-section: BayesHive
+help-section-order: 1
+---
+
 
 Both the nonlinear regression and the dynamical systems model builders
 require the specification of mathematical expressions: for nonlinear
