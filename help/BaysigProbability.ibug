@@ -6,7 +6,7 @@ help-section-order: 2
 
 
 This is the second document in a quick tour of the Baysig programming 
-language, following on from [[Baysig quick tour: fundamentals]].
+language, following on from [[Baysig quick tour: Fundamentals]].
 
 Baysig has one elementary probability
 distribution built-in (`unit`) and many more defined in its
@@ -101,5 +101,4 @@ distribution:
 
 ?> us
             
-The quick tour of Baysig continues in the document [[Baysig quick
-tour: Bayesian statistical inference]]
+The quick tour of Baysig continues in the document [[Baysig quick tour: Bayesian statistical inference]]

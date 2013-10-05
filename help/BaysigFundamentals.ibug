@@ -6,17 +6,17 @@ help-section-order: 1
 
 
 This is the first document in a "quick tour" of the Baysig programming
-language. 
+language.
 
 The tour can be found in these sections:
 
-* Baysig quick tour: fundamentals (this document)
-* [[Baysig quick tour: probability distributions]]
+* Baysig quick tour: Fundamentals (this document)
+* [[Baysig quick tour: Probability distributions]]
 * [[Baysig quick tour: Bayesian statistical inference]]
-* [[Baysig quick tour: dynamical systems]]
+* [[Baysig quick tour: Dynamical systems]]
 
 ### What is Baysig?
- 
+
 Baysig is a probabilistic, spatiotemporal and purely functional
 programming language. That's a bit of a mouthful, so I'll define what
 I mean by those terms before we dive in:
@@ -48,10 +48,10 @@ constitutes an environment for *reproducible research*.
 
 This tour is not a thorough introduction to Baysig. Rather, it
 aims to give a sense of how Baysig is different from other programming
-languages and what kinds of things you can do with it. 
+languages and what kinds of things you can do with it.
 
 ### Functions and Types
-   
+
 The core of Baysig is purely functional programming language, in which
 the central notion is of course the *function*. Functions are simple
 to define
@@ -106,7 +106,7 @@ is a function.
 ?> twice f 1
 
 You can check for yourself that this makes sense from the definition
-of `f` above. 
+of `f` above.
 
 What is the type of twice? The function `g` must return a value of the
 same type as its argument, otherwise we would not be able to apply it
@@ -126,6 +126,6 @@ expression `2+2` is not assigned a name. Likewise, expressions
 denoting functions can be constructed anonymously: `\x-> x+1` is read
 as "the function that takes an argument `x` and returns `x+1`." Thus
 `twice f 1` can be written `twice (\x->2*x+1) 1`. This is occasionally
-useful.                     
+useful.
 
-The quick tour of Baysig continues in the document [[Baysig quick tour: probability distributions]].
+The quick tour of Baysig continues in the document [[Baysig quick tour: Probability distributions]].

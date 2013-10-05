@@ -4,7 +4,7 @@ help-section: Baysig quick tour
 help-section-order: 3
 ---
 
-This is the third document in a quick tour of the Baysig programming language, following on from [[Baysig quick tour: probability distributions]]. The tour begins in [[Baysig quick tour: fundamentals]].
+This is the third document in a quick tour of the Baysig programming language, following on from [[Baysig quick tour: Probability distributions]]. The tour begins in [[Baysig quick tour: Fundamentals]].
 
 When we move from simple to more complex distributions, the
 connection to statistical modelling becomes clearer:
@@ -150,5 +150,5 @@ fully Bayesian computing. In this language, we program directly with
 probability distributions over arbitrary data types. The next
 section illustrates how this extends to models of time-series data.
 
-The quick tour of Baysig continues in the document [[Baysig quick tour: dynamical systems]].
-                                          
+The quick tour of Baysig continues in the document [[Baysig quick tour: Dynamical systems]].
+
