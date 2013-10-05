@@ -1,5 +1,7 @@
 ---
 title: Documents
+help-section: BayesHive
+help-section-order: 1
 ---
 
 Documents in BayesHive contain three different kinds of sections,
