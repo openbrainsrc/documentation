@@ -75,6 +75,33 @@ date: October 1st, 1859
 When on board H.M.S. 'Beagle,' as naturalist, I was much struck with certain facts...
 ```
 
+# Margins
+
+You can add marginalia to your document in a variety of ways:
+
+## Text margin notes
+
+In a text plot, enclose a note [^This is a margin note.^] in `[ ^`
+(but without the space between `[` and `^`) at the beginning and `^ ]`
+(again with no space between `^` and `]`)
+
+## Plot code
+
+if a question resulting in a plot is specified in one or more lines of
+less than 36 characters each, this code is typeset in the margin.
+
+## Code comments
+
+Not yet implemented
+
+## Margin plots
+
+Not yet implemented
+
+## Figure legends
+
+Not yet implemented
+
 # Table of contents
 
 Inserting the text `[[TOC]]` will generate a table of contents in place.
