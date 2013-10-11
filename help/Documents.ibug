@@ -4,6 +4,8 @@ help-section: BayesHive
 help-section-order: 1
 ---
 
+[[TOC]]
+
 Documents in BayesHive contain three different kinds of sections,
 which are distinguished by the first character(s) in the line: text, code
 and questions.
@@ -65,7 +67,10 @@ Example:
 ```
 ---
 title: On the Origin of Species
-author: Charles Darwin, M.A., Fellow Of The Royal, Geological, Linnaean, Etc., Societies
+author: 
+   Charles Darwin, M.A., 
+   Fellow Of The Royal, Geological, Linnaean, Etc., Societies
+
 date: October 1st, 1859
 ---
 ```
