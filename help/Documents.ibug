@@ -85,6 +85,7 @@ will be typeset with appropriate heading styles.
 Example:
 
 ```
+
 ---
 title: On the Origin of Species
 author: 
@@ -142,6 +143,7 @@ and another one starts. This replaces the brakcets found in many
 programming languages with an indentation. 
 
 ```
+
  This is a function
   
  > f x 
