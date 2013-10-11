@@ -910,7 +910,7 @@ number generation this definition is equivalent to the following
 pseudocode in an imperative programming language:
 
 ```
-proccedure univariateLinearRegression
+procedure univariateLinearRegression
    slope     :=  genNormal(0,1)
    offset    :=  genNormal(0,1)
    variance  :=  genGamma(1,1) 
