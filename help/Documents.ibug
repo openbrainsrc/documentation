@@ -47,12 +47,13 @@ special characters can be used to format the text:
 
 Section headings start with a `#`. 
 
-``` 
-  # This is a section
+```
+ 
+ # This is a section
 
-  ## This is a subsection
+ ## This is a subsection
 
-  ### this is a subsubsection
+ ### this is a subsubsection
 
 ```
 
