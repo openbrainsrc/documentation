@@ -11,13 +11,14 @@ which are distinguished by the first character(s) in the line: text, code
 and questions.
 
 ```
-  This is text
 
-  > thisIsCode = "this is code"
+ This is text
 
-  The following line is a question:
+ > thisIsCode = "this is code"
 
-  ?> 2 + 2
+ The following line is a question:
+
+ ?> 2 + 2
 
 ```
 
