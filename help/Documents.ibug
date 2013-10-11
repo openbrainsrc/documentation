@@ -118,7 +118,16 @@ Not yet implemented
 
 ## Margin plots
 
-Not yet implemented
+To make a plot appear in the margins, apply the `inMargins` combinator
+to it. It will appear in the margins of the *next* text block. 
+
+Example:
+
+```
+ ?>> inMargins $ distPlot $ normal 0 1
+```
+
+Its is probably not a good idea to mix margin notes and margin plots.
 
 ## Figure legends
 
