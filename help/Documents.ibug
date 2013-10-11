@@ -81,7 +81,7 @@ You can add marginalia to your document in a variety of ways:
 
 ## Text margin notes
 
-In a text plot, enclose a note[^This is a margin note.^] in `[ ^`
+In a text block, enclose a note[^This is a margin note.^] in `[ ^`
 (but without the space between `[` and `^`) at the beginning and `^ ]`
 (again with no space between `^` and `]`)
 
