@@ -41,6 +41,10 @@ special characters can be used to format the text:
 | `**bold**`           | **bold**           |
 | `[Yahoo!](yahoo.com)`| [Yahoo!](yahoo.com)|
 
+[Additional documentation for markdown syntax](http://daringfireball.net/projects/markdown/syntax)
+
+## Headings
+
 Section headings start with a `#`. 
 
 ``` 
@@ -52,7 +56,21 @@ Section headings start with a `#`.
 
 ```
 
-[Additional documentation for markdown syntax](http://daringfireball.net/projects/markdown/syntax)
+## Equations
+
+Eqautions can be embedded in [LaTeX
+math](http://en.wikibooks.org/wiki/LaTeX/Mathematics)
+format. Equations embedded in a text block can be surrounded by dollar
+signs (`$`), like this: `$sin(x)$` renders as $sin(x)$. Stand-alone
+equations are surrounded by double-dollar signs
+
+```
+$$ f(x) = sin(2x) $$
+```
+
+renders as 
+
+$$ f(x) = sin(2x) $$
 
 # Title section
 
