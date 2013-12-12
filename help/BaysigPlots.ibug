@@ -77,15 +77,13 @@ example, but you can also use uploaded timeseries.
 probability distribution over timeseries instead of a single
 value. Let's plot the `wiener` distribution over Wiener processes:
 
-> ws = wiener
-
-?> psigPlot ws
+?> psigPlot wiener
 
 As you can see, it draws a number of samples from the probability
 distribution. You ca change the number of samples drawn by using
 `psigNPlot` instead:
 
-?> psigNPlot 10 ws
+?> psigNPlot 10 wiener
 
 If you plot a lot of signals this way, your browser will feel *very*
 slow.
