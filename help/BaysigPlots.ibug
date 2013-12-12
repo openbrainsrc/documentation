@@ -87,7 +87,7 @@ distribution. You ca change the number of samples drawn by using
 
 ?> psigNPlot 10 ws
 
-If you plot a lot of signals this way, your broswer will feel *very*
+If you plot a lot of signals this way, your browser will feel *very*
 slow.
 
 `ppoints` is the probabilistic equivalent of `scatterPlot`. It takes a
