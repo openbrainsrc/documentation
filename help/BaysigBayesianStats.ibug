@@ -136,16 +136,16 @@ operation changes a model such that parameters are drawn from a
 specified probability distribution. To sample from `regress` with
 known parameters:
 
-> regress1 <* updateS regress (return {err=>0.01;
->                                      offset=>2.0;
->                                      slope=>0.4})
+> regress1 <* update regress (return {err=>0.01;
+>                                     offset=>2.0;
+>                                     slope=>0.4})
 
 or with the posterior
 
 < regress2 <* update regress regrParams
 
 `sample`, `estimate` and `update` together with probabilistic models
-written in the random number monad forms a programming interface to
+written in the `prob`-notation forms a programming interface to
 fully Bayesian computing. In this language, we program directly with
 probability distributions over arbitrary data types. The next
 section illustrates how this extends to models of time-series data.

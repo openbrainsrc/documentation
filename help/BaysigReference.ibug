@@ -22,19 +22,19 @@ called BayesHive that allows users with little to no programming
 experience to build statistical models in the Baysig language and run
 these models against their own or public data.  The easiest way to
 learn Baysig is probably to build models in BayesHive and then look at
-and modify the degenerated Baysig code.  Once you've done this, the
+and modify the generated Baysig code.  Once you've done this, the
 Baysig documentation will show you how to build even more flexible
 models.
 
 ## Baysig documentation
 
-We have written an informal [quick tour of the Baysig language](http://bayeshive.com/helppage/Baysig%20quick%20tour:%20fundamentals) that we
+We have written an informal [quick tour of the Baysig language](https://bayeshive.com/helppage/Baysig%20quick%20tour/Fundamentals) that we
 suggest you start with if you want to learn Baysig.  This reference
 Manual covers many of the concepts in more detail.  In addition, large
-amounts of example Baysig code can be found in the Baysig test suit.
+amounts of example Baysig code can be found in the Baysig test suite.
 
 There is also a list of [frequently asked
-questions](http://bayeshive.com/helppage/Frequently%20Asked%20Questions)
+questions](https://bayeshive.com/helppage/General/Frequently%20Asked%20Questions)
 with answers.
 
 This and the other [help files](https://bayeshive.com/help) are
@@ -325,7 +325,7 @@ TODO: mutation vs persistence
 
 Records are inhomogeneous collections of values; each value in a
 record is given a name (the *field name*) which is used to reference
-it. Lists are built using the following syntax:
+it. Records are built using the following syntax:
 
 ```
 {name=>"Tom"; age => 35}
@@ -554,7 +554,7 @@ the timestep and the duration of integration. For instance
 > tmax = 2
 > dt = 0.001
 
-The value of these variables are taken frmo the local scope in which
+The value of these variables are taken from the local scope in which
 the numerical integration is performed, so it can be reassigned locally:
 
 ```
@@ -576,7 +576,7 @@ definition of wiener and d on rhs of SDE.
 
 ## Vectors
 
-Vectors are heterogeneous collections of elements. 
+Vectors are homogeneous collections of elements. 
 
 To build a vector
 

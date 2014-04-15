@@ -23,7 +23,7 @@ a uniform distribution with lower and upper bounds `uniform 5.0 10.0`
 
 ?> distPlot $ uniform 5.0 10.0
 
-and the camma distribution, here `gamma 3 2`   
+and the gamma distribution, here `gamma 3 2`   
 
 ?> distPlot $ gamma 3 2
 
@@ -79,7 +79,7 @@ distribution. This is an important point, because distributions in a sense
 represent uncertainty which must never be collapsed into a particular
 value. So when we use the operator `sample` to draw values from
 distributions, it is strictly speaking *cheating.* To prevent misuse of
-`sample`, it is not implemented as a  function and can only be used only
+`sample`, it is not implemented as a  function and can only be used 
 at the top level (i.e. not inside a definition such as a function or a
 probability distribution). We also do *not* use equality to denote this
 assignment:
